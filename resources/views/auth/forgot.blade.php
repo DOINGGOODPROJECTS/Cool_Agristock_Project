@@ -2,8 +2,16 @@
     <form method="POST" action="{{ route('password.email') }}">
         @csrf
 
+        @if (session('status'))
+            <div class="alert alert-success text-center small mb-3">
+                {{ session('status') }}
+            </div>
+        @endif
+
         <!-- Email Address -->
-        <p class="text-muted text-center"><x-input-error :messages="$errors->get('auth')" class="mt-2" /></p>
+        <p class="text-muted text-center">
+            <x-input-error :messages="$errors->get('email')" class="mt-2" />
+        </p>
         
         <div class="d-grid gap-3">
             <div class="form-floating">

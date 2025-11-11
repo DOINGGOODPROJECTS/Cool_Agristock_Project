@@ -28,6 +28,7 @@ class ClaimMail extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
+            from: new Address('noreply@agristock.fraiszo.com', 'Cool AgriStock'),
             subject: __('locale.claim_mail'),
             cc: array_map(fn($email) => new Address($email), ['yamooon664@gmail.com', 'client@coollionenergies.com', 'support@coollionenergies.com'])
         );

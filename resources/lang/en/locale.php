@@ -154,7 +154,7 @@
         'total_amount' => 'Total Amount',
         'total' => 'Total',
         'expiration_possible' => 'Expiration Possible',
-        'capacity' => 'Type:suffix Of Container', 
+        'capacity' => 'Types of Container', 
         'storage_type' => 'Storage Type:suffix', 
         'show' => 'Show',
         'space' => 'Space',
@@ -181,4 +181,6 @@
         'french' => 'French',
         'english' => '(US) English',
         'welcome' => 'Welcome',
+        'export_individual' => 'Export Individually',
+        'export_all' => 'Export All Data',
     );

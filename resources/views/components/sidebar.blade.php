@@ -1,5 +1,5 @@
 <div class="sidebar-left">
-    <div data-simplebar class="h-100">
+    <div data-simplebar class="h-100 d-flex flex-column">
         <!--- Sidebar-menu -->
         <div id="sidebar-menu">
             <!-- Left Menu Start -->
@@ -71,6 +71,18 @@
 
                 <li><a href="{{ route('logout') }}" class="text-danger"><i class="fa fa-power-off"></i> <span>@lang('locale.logout')</span></a></li>
             </ul>
+        </div>
+        <div class="sidebar-export-actions mt-auto px-3 pb-3 pt-3 border-top">
+            <div class="d-grid gap-2">
+                <a href="{{ route('exports.individual') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center gap-2">
+                    <i class="fa fa-file-alt"></i>
+                    <span>@lang('locale.export_individual')</span>
+                </a>
+                <a href="{{ route('exports.all') }}" class="btn btn-primary btn-sm d-flex align-items-center justify-content-center gap-2" download>
+                    <i class="fa fa-file-export"></i>
+                    <span>@lang('locale.export_all')</span>
+                </a>
+            </div>
         </div>
         <!-- Sidebar -->
     </div>

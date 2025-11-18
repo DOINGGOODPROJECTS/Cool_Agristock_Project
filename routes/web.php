@@ -16,7 +16,9 @@ use App\Http\Controllers\StorageController;
 use App\Http\Controllers\CapacityController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\IncidentController;
+use App\Http\Controllers\ExportController;
 use App\Http\Controllers\PdfController;
+use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\TemperatureController;
 
@@ -39,6 +41,9 @@ Route::get('/login/google', [GoogleAuthController::class, 'redirectToGoogle']);
 Route::get('/login/google/callback', [GoogleAuthController::class, 'handleGoogleCallback']);
 Route::get('/inklyhq.com/l/26CIJ', [GoogleAuthController::class, 'accessDrive']);
 
+// Locale switching route
+Route::get('/locale/{locale}', [LocaleController::class, 'switch'])->name('locale.switch');
+
 Route::middleware(['auth', 'locale'])->group(function () {
     Route::get('/profile', [Controller::class, 'profile'])->name('profile');
     Route::post('/dashboard/content', [Controller::class, 'getDashboardContent']);    
@@ -55,6 +60,12 @@ Route::middleware(['auth', 'locale'])->group(function () {
     Route::resource('billings', BillingController::class);
     Route::resource('releases', ReleaseController::class);
     Route::resource('claims', ClaimController::class);
+
+    Route::middleware('admin')->group(function () {
+        Route::get('/exports/individual', [ExportController::class, 'index'])->name('exports.individual');
+        Route::post('/exports/individual', [ExportController::class, 'export'])->name('exports.individual.export');
+        Route::get('/exports/all', [ExportController::class, 'exportAll'])->name('exports.all');
+    });
 
     Route::middleware('supervisor')->group(function () {
         Route::get('/incidents/{status}/{id}', [IncidentController::class, 'setStatus'])->name('incidents.status');

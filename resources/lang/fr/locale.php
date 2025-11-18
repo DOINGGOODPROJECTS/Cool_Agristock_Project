@@ -161,7 +161,7 @@
         'accounting' => 'Comptabilité:suffix',
         'billing' => 'Facture:suffix',
         'payment' => 'Réglement:suffix',
-        'capacity' => 'Type:suffix de Contenant', 
+        'capacity' => 'Types de Contenant', 
         'tariff' => 'Tarif:suffix',
         'storage_type' => 'Type:suffix de Stockage', 
         'space' => 'Espace',
@@ -188,4 +188,6 @@
         'french' => 'Français',
         'english' => 'Anglais (US)',
         'welcome' => 'Bienvenue',
+        'export_individual' => 'Exporter individuellement',
+        'export_all' => 'Tout exporter',
     );

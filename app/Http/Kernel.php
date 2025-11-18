@@ -36,6 +36,7 @@ class Kernel extends HttpKernel
             \Illuminate\View\Middleware\ShareErrorsFromSession::class,
             \App\Http\Middleware\VerifyCsrfToken::class,
             \Illuminate\Routing\Middleware\SubstituteBindings::class,
+            \App\Http\Middleware\LocaleMiddleware::class,
         ],
 
         'api' => [
@@ -70,7 +71,7 @@ class Kernel extends HttpKernel
         'supervisor' => \App\Http\Middleware\SupervisorMiddleware::class,
         'accountant' => \App\Http\Middleware\AccountantMiddleware::class,
         'customer' => \App\Http\Middleware\CustomerMiddleware::class,
-        'locale' => \App\Http\Middleware\LocaleMiddleware::class,
+        'locale' => \App\Http\Middleware\SetLocale::class,
         'admin.supervisor.accountant' => \App\Http\Middleware\AdminSupervisorAccountantMiddleware::class,
     ];
 }

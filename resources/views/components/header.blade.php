@@ -31,6 +31,22 @@
         <!-- Start menu -->
         <div class="d-flex justify-content-end menu-sm px-3 ms-auto">
             <div class="d-flex align-items-center gap-2">
+                <!-- Start Language Switcher -->
+                <div class="dropdown d-inline-block">
+                    <button type="button" class="btn btn-sm top-icon" id="page-header-language-dropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-globe align-middle"></i>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end" aria-labelledby="page-header-language-dropdown">
+                        <a class="dropdown-item {{ app()->getLocale() === 'fr' ? 'active' : '' }}" href="{{ route('locale.switch', 'fr') }}">
+                            <span class="me-2">🇫🇷</span> @lang('locale.french')
+                        </a>
+                        <a class="dropdown-item {{ app()->getLocale() === 'en' ? 'active' : '' }}" href="{{ route('locale.switch', 'en') }}">
+                            <span class="me-2">🇬🇧</span> @lang('locale.english')
+                        </a>
+                    </div>
+                </div>
+                <!-- End Language Switcher -->
+
                 <!-- Start Notification -->
                 @if (isGroupAuthorized([1, 2, 3, 4]) && $notifications->count() > 0)
                 <div class="dropdown d-inline-block">

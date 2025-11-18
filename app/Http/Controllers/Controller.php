@@ -113,8 +113,12 @@ class Controller extends BaseController
 
     public function setLocaleUpdate($locale) 
     {
-        $currentThis = User::find(auth()->id());
-        $currentThis->update(compact('locale'));
+        session(['locale' => $locale]);
+
+        if (auth()->check()) {
+            $currentThis = User::find(auth()->id());
+            $currentThis?->update(compact('locale'));
+        }
 
         return back();
     }

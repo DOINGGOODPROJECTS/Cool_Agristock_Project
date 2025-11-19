@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Model;
  * 
  * @property int $id
  * @property int $user_id
- * @property Carbon $logged_at
+ * @property Carbon $login_at
  * @property Carbon $logout_at
  * 
  * @property User $user
@@ -24,14 +24,28 @@ use Illuminate\Database\Eloquent\Model;
 class Activity extends Model
 {
 	public $timestamps = false;
+	public $incrementing = false;
+	protected $primaryKey = 'id';
+	protected $keyType = 'int';
 
 	protected $casts = [
 		'user_id' => 'int',
-		'logged_at' => 'datetime',
+		'login_at' => 'datetime',
 		'logout_at' => 'datetime'
 	];
 
 	protected $guarded = [];
+
+	protected static function booted(): void
+	{
+		// Fallback for databases where the id column is not auto-incrementing.
+		static::creating(function (Activity $activity) {
+			if (is_null($activity->id)) {
+				$nextId = (static::max('id') ?? 0) + 1;
+				$activity->id = $nextId;
+			}
+		});
+	}
 
 	public function user()
 	{

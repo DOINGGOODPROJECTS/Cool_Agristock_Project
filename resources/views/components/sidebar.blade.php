@@ -73,6 +73,7 @@
             </ul>
         </div>
         <div class="sidebar-export-actions mt-auto px-3 pb-3 pt-3 border-top">
+            @if (isGroupAuthorized([1, 2, 3, 4]))
             <div class="d-grid gap-2">
                 <a href="{{ route('exports.individual') }}" class="btn btn-outline-secondary btn-sm d-flex align-items-center justify-content-center gap-2">
                     <i class="fa fa-file-alt"></i>
@@ -83,6 +84,7 @@
                     <span>@lang('locale.export_all')</span>
                 </a>
             </div>
+            @endif
         </div>
         <!-- Sidebar -->
     </div>

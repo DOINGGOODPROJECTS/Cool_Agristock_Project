@@ -39,7 +39,7 @@ class ExportController extends Controller
                 ['users.username', 'username'],
                 ['users.phone', 'phone'],
                 ['users.email', 'email'],
-                ['users.locale', 'locale'],
+                ['users.language', 'language'],
                 ['users.created_at', 'created_at'],
             ],
             'joins' => [
@@ -55,7 +55,7 @@ class ExportController extends Controller
                 'username' => 'Username',
                 'phone' => 'Phone',
                 'email' => 'Email',
-                'locale' => 'Locale',
+                'language' => 'Language',
                 'created_at' => 'Created At',
             ],
         ],

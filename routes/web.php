@@ -21,6 +21,10 @@ use App\Http\Controllers\PdfController;
 use App\Http\Controllers\LocaleController;
 use App\Http\Controllers\GoogleAuthController;
 use App\Http\Controllers\TemperatureController;
+use App\Http\Controllers\InventoryOpController;
+use App\Http\Controllers\SyncAuditLogController;
+use App\Http\Controllers\SyncSessionController;
+use App\Http\Controllers\MemberPhoneController;
 
 /*
 |--------------------------------------------------------------------------
@@ -51,6 +55,59 @@ Route::middleware(['auth', 'locale'])->group(function () {
     Route::get('/dashboard', [Controller::class, 'dashboard'])->middleware('verified')->name('dashboard');    
     Route::get('/customers', [UserController::class, 'customers'])->middleware(['admin.supervisor.accountant'])->name('customers');
     
+
+    // ── Sync layer ────────────────────────────────────────────────────
+    Route::get('/inventory-ops', [InventoryOpController::class, 'index'])
+        ->middleware('sync.permission:sync.pull')
+        ->name('inventory-ops.index');
+
+    Route::post('/inventory-ops/{opId}/accept',  [InventoryOpController::class, 'accept'])
+        ->middleware('sync.permission:sync.accept')
+        ->name('inventory-ops.accept');
+
+    Route::post('/inventory-ops/{opId}/discard', [InventoryOpController::class, 'discard'])
+        ->middleware('sync.permission:sync.discard')
+        ->name('inventory-ops.discard');
+
+    Route::post('/inventory-ops/{opId}/cancel',  [InventoryOpController::class, 'cancel'])
+        ->middleware('sync.permission:sync.cancel')
+        ->name('inventory-ops.cancel');
+
+    Route::post('/inventory-ops/merge',           [InventoryOpController::class, 'merge'])
+        ->middleware('sync.permission:sync.merge')
+        ->name('inventory-ops.merge');
+
+    Route::put('/inventory-ops/{opId}',          [InventoryOpController::class, 'edit'])
+        ->middleware('sync.permission:sync.edit')
+        ->name('inventory-ops.edit');
+
+    Route::post('/inventory-ops/{opId}/override', [InventoryOpController::class, 'override'])
+        ->middleware('sync.permission:sync.accept')
+        ->name('inventory-ops.override');
+
+    Route::get('/sync-audit-log',                    [SyncAuditLogController::class, 'index'])
+        ->middleware('sync.permission:log.view')
+        ->name('sync-audit-log.index');
+
+    Route::get('/sync-audit-log/export',             [SyncAuditLogController::class, 'export'])
+        ->middleware('sync.permission:log.export')
+        ->name('sync-audit-log.export');
+
+    Route::get('/inventory-ops/{opId}/history',      [SyncAuditLogController::class, 'forOp'])
+        ->middleware('sync.permission:sync.pull')
+        ->name('inventory-ops.history');
+
+    Route::get('/sync-sessions', [SyncSessionController::class, 'index'])
+        ->middleware('sync.permission:sync.reconcile')
+        ->name('sync-sessions.index');
+
+    Route::get('/sync-protocol', fn() => view('admin.sync-protocol'))->name('sync-protocol');
+
+    Route::get('/member-phones',                       [MemberPhoneController::class, 'index'])->name('member-phones.index');
+    Route::post('/member-phones',                      [MemberPhoneController::class, 'store'])->name('member-phones.store');
+    Route::post('/member-phones/{id}/verify',          [MemberPhoneController::class, 'verify'])->name('member-phones.verify');
+    Route::delete('/member-phones/{id}',               [MemberPhoneController::class, 'destroy'])->name('member-phones.destroy');
+    // ─────────────────────────────────────────────────────────────────
 
     Route::resource('stocks', StockController::class);
     Route::resource('details', DetailController::class);

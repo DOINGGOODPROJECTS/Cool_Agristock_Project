@@ -8,6 +8,10 @@
         <meta content="Cool AgriStock" name="author" />
 
         <meta name="app-url" content="{{ env('APP_URL') }}">
+        @auth
+        <meta name="user-id"       content="{{ auth()->id() }}">
+        <meta name="user-group-id" content="{{ auth()->user()->group_id }}">
+        @endauth
 
         <title>{{ config('app.name', 'Laravel') }} | Admin</title>
 
@@ -40,6 +44,7 @@
         </div>
 
         <x-custom-settings></x-custom-settings>
+        <x-sync-conflict-modal></x-sync-conflict-modal>
 
         <!-- JAVASCRIPT -->
         <script src="{{ asset('libs/jquery/jquery.min.js') }}"></script>
@@ -52,5 +57,9 @@
 
         <!-- App js -->
         <script src="{{ asset('js/app.js') }}"></script>
+
+        {{-- Vite-compiled entry: Alpine.js + service-worker registration +
+             Background Sync + connectivity indicator (resources/js/app.js) --}}
+        @vite('resources/js/app.js')
     </body>
 </html>

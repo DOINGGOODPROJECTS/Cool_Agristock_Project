@@ -31,6 +31,14 @@
         <!-- Start menu -->
         <div class="d-flex justify-content-end menu-sm px-3 ms-auto">
             <div class="d-flex align-items-center gap-2">
+                <!-- Connectivity status indicator — updated live by resources/js/app.js -->
+                <span id="connectivity-status"
+                      class="badge rounded-pill bg-success-subtle text-success border border-success-subtle px-2 py-1"
+                      title="Connected"
+                      style="font-size:.72rem">
+                    <i class="fas fa-wifi me-1"></i><span class="d-none d-sm-inline">Online</span>
+                </span>
+
                 <!-- Start Language Switcher -->
                 <div class="dropdown d-inline-block">
                     <button type="button" class="btn btn-sm top-icon" id="page-header-language-dropdown" data-bs-toggle="dropdown" aria-expanded="false">

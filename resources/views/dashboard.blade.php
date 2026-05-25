@@ -147,6 +147,14 @@
         </div>
     </div>
 
+    {{-- Sync status panel — visible to all authenticated roles --}}
+    <x-sync-dashboard-panel
+        :syncPending="$syncPending"
+        :syncConflicts="$syncConflicts"
+        :syncApplied="$syncApplied"
+        :syncOps="$syncOps"
+    />
+
     <div id="content">
         <div class="row g-4 align-items-start">
             <div class="col-12">
@@ -269,7 +277,7 @@
                                                 <td data-label="#">{{ $loop->iteration }}</td>
                                                 <td data-label="@lang('locale.customer', ['suffix'=>''])">{{ $item->customer->name }}</td>
                                                 <td data-label="@lang('locale.ref')">{{ $item->ref }}</td>
-                                                <td data-label="@lang('locale.billing', ['suffix'=>''])">{{ $item->billing->ref }}</td>
+                                                <td data-label="@lang('locale.billing', ['suffix'=>''])">{{ optional($item->billing)->ref ?? '—' }}</td>
                                                 <td data-label="@lang('locale.qty')">{{ $item->qty }} kg</td>
                                                 <td class="text-{{ $item->created_at->addDays($item->expired_at) >= now() ? 'primary' : 'danger' }}" data-label="@lang('locale.expired_at')">
                                                     @if ($item->qty == 0)

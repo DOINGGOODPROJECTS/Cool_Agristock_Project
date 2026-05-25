@@ -73,5 +73,6 @@ class Kernel extends HttpKernel
         'customer' => \App\Http\Middleware\CustomerMiddleware::class,
         'locale' => \App\Http\Middleware\SetLocale::class,
         'admin.supervisor.accountant' => \App\Http\Middleware\AdminSupervisorAccountantMiddleware::class,
+        'sync.permission' => \App\Http\Middleware\SyncPermissionMiddleware::class,
     ];
 }

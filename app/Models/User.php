@@ -76,6 +76,21 @@ class User extends Authenticatable
 		return $this->hasMany(Stock::class, 'created_by');
 	}
 
+    public function inventoryOps()
+    {
+        return $this->hasMany(InventoryOp::class);
+    }
+
+    public function syncSessions()
+    {
+        return $this->hasMany(SyncSession::class);
+    }
+
+    public function memberPhone()
+    {
+        return $this->hasOne(MemberPhone::class);
+    }
+
     /**
      * Send a password reset notification to the user.
      *

@@ -11,6 +11,7 @@ use App\Models\Payment;
 use App\Models\Release;
 use App\Models\Storage;
 use App\Models\Incident;
+use App\Models\InventoryOp;
 use App\Models\Temperature;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
@@ -54,7 +55,36 @@ class Controller extends BaseController
         $stocks = $stocks->orderByDesc('id')->get()->take(10);
         $billings = $billings->orderByDesc('id')->get()->take(5);
         $incidents = Incident::where('status', 'EN COURS')->orderByDesc('id')->get()->take(3);
-        return view('dashboard', compact('stocks', 'payments', 'temperatures', 'incidents', 'customers', 'storages', 'releases', 'billings'));
+
+        // Sync panel data
+        $syncUserId  = auth()->id();
+        $syncGroupId = auth()->user()->group_id;
+        if ($syncGroupId <= 4) {
+            $syncPending   = InventoryOp::where('sync_status', 'pending')->count();
+            $syncConflicts = InventoryOp::where('sync_status', 'conflict')->count();
+            $syncApplied   = InventoryOp::where('sync_status', 'applied')
+                                ->whereDate('applied_at', today())->count();
+            $syncOps = InventoryOp::with('user', 'storage', 'product')
+                ->whereIn('sync_status', ['pending', 'conflict'])
+                ->orderByDesc('server_received_at')
+                ->limit(20)->get();
+        } else {
+            $syncPending   = InventoryOp::where('user_id', $syncUserId)->where('sync_status', 'pending')->count();
+            $syncConflicts = InventoryOp::where('user_id', $syncUserId)->where('sync_status', 'conflict')->count();
+            $syncApplied   = InventoryOp::where('user_id', $syncUserId)->where('sync_status', 'applied')
+                                ->whereDate('applied_at', today())->count();
+            $syncOps = InventoryOp::with('storage', 'product')
+                ->where('user_id', $syncUserId)
+                ->whereIn('sync_status', ['pending', 'conflict'])
+                ->orderByDesc('server_received_at')
+                ->limit(10)->get();
+        }
+
+        return view('dashboard', compact(
+            'stocks', 'payments', 'temperatures', 'incidents',
+            'customers', 'storages', 'releases', 'billings',
+            'syncPending', 'syncConflicts', 'syncApplied', 'syncOps'
+        ));
     }
 
     public function getDashboardContent(Request $request) 
@@ -117,7 +147,7 @@ class Controller extends BaseController
 
         if (auth()->check()) {
             $currentThis = User::find(auth()->id());
-            $currentThis?->update(compact('locale'));
+            $currentThis?->update(['language' => $locale]);
         }
 
         return back();

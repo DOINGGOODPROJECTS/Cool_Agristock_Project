@@ -53,4 +53,9 @@ class Product extends Model
 	{
 		return $this->hasMany(Rotten::class);
 	}
+
+	public function inventoryOps()
+	{
+		return $this->hasMany(InventoryOp::class);
+	}
 }

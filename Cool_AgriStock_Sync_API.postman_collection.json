@@ -1,0 +1,490 @@
+{
+  "info": {
+    "name": "Cool AgriStock — Sync API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "cool-agristock-sync"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://127.0.0.1:8000/api", "type": "string" },
+    { "key": "token_admin",       "value": "", "type": "string" },
+    { "key": "token_supervisor",  "value": "", "type": "string" },
+    { "key": "token_user",        "value": "", "type": "string" }
+  ],
+  "item": [
+
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Get token — Admin",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.collectionVariables.set('token_admin', pm.response.json().token);",
+                     "pm.test('status 200', () => pm.response.to.have.status(200));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"admin@example.com\",\n  \"password\": \"password\",\n  \"device_name\": \"postman-admin\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/token", "host": ["{{base_url}}"], "path": ["auth","token"] }
+          }
+        },
+        {
+          "name": "Get token — Supervisor",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.collectionVariables.set('token_supervisor', pm.response.json().token);",
+                     "pm.test('status 200', () => pm.response.to.have.status(200));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"supervisor@example.com\",\n  \"password\": \"password\",\n  \"device_name\": \"postman-supervisor\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/token", "host": ["{{base_url}}"], "path": ["auth","token"] }
+          }
+        },
+        {
+          "name": "Get token — User (group 5)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.collectionVariables.set('token_user', pm.response.json().token);",
+                     "pm.test('status 200', () => pm.response.to.have.status(200));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password\",\n  \"device_name\": \"postman-user\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/token", "host": ["{{base_url}}"], "path": ["auth","token"] }
+          }
+        },
+        {
+          "name": "Bad credentials → 401",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 401', () => pm.response.to.have.status(401));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"email\": \"nobody@example.com\",\n  \"password\": \"wrong\",\n  \"device_name\": \"test\"\n}" },
+            "url": { "raw": "{{base_url}}/auth/token", "host": ["{{base_url}}"], "path": ["auth","token"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "POST /sync/push",
+      "item": [
+        {
+          "name": "Push batch — Admin (expect applied)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('has session_id', () => pm.expect(pm.response.json()).to.have.property('session_id'));",
+              "pm.test('has authoritative_state', () => pm.expect(pm.response.json()).to.have.property('authoritative_state'));",
+              "pm.collectionVariables.set('last_op_id', pm.response.json().conflicts[0]?.op_id ?? '');"
+            ]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"session_id\": \"00000000-0000-4000-a000-000000000001\",\n  \"device_id\": \"android-test-01\",\n  \"last_sync_at\": null,\n  \"ops\": [\n    {\n      \"op_id\": \"00000000-0000-4000-a000-000000000010\",\n      \"user_id\": 1,\n      \"device_id\": \"android-test-01\",\n      \"logical_seq\": 1,\n      \"storage_id\": 1,\n      \"product_id\": 1,\n      \"stock_id\": null,\n      \"op_type\": \"adjustment\",\n      \"quantity_delta\": 10.0,\n      \"unit\": \"kg\",\n      \"notes\": \"Recount\",\n      \"client_created_at\": \"2026-05-25T10:00:00Z\"\n    }\n  ]\n}" },
+            "url": { "raw": "{{base_url}}/sync/push", "host": ["{{base_url}}"], "path": ["sync","push"] }
+          }
+        },
+        {
+          "name": "Push — no token → 401",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 401', () => pm.response.to.have.status(401));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Accept", "value": "application/json" }],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"session_id\": \"00000000-0000-4000-a000-000000000002\",\n  \"device_id\": \"x\",\n  \"ops\": []\n}" },
+            "url": { "raw": "{{base_url}}/sync/push", "host": ["{{base_url}}"], "path": ["sync","push"] }
+          }
+        },
+        {
+          "name": "Push — invalid storage_id → 422",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 422', () => pm.response.to.have.status(422));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"session_id\": \"00000000-0000-4000-a000-000000000099\",\n  \"device_id\": \"x\",\n  \"ops\": [\n    {\n      \"op_id\": \"00000000-0000-4000-a000-000000000099\",\n      \"user_id\": 1,\n      \"device_id\": \"x\",\n      \"logical_seq\": 1,\n      \"storage_id\": 999999,\n      \"product_id\": 1,\n      \"op_type\": \"adjustment\",\n      \"quantity_delta\": 1,\n      \"unit\": \"kg\"\n    }\n  ]\n}" },
+            "url": { "raw": "{{base_url}}/sync/push", "host": ["{{base_url}}"], "path": ["sync","push"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "GET /sync/pull",
+      "item": [
+        {
+          "name": "Pull — Admin (since_logical_seq=0)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('has remote_ops', () => pm.expect(pm.response.json()).to.have.property('remote_ops'));",
+              "pm.test('has pending_conflicts', () => pm.expect(pm.response.json()).to.have.property('pending_conflicts'));",
+              "pm.test('has server_logical_seq', () => pm.expect(pm.response.json()).to.have.property('server_logical_seq'));"
+            ]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/pull?since_logical_seq=0&device_id=android-test-01",
+              "host": ["{{base_url}}"], "path": ["sync","pull"],
+              "query": [
+                { "key": "since_logical_seq", "value": "0" },
+                { "key": "device_id", "value": "android-test-01" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Pull — User (own conflicts only)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 200', () => pm.response.to.have.status(200));"]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "url": { "raw": "{{base_url}}/sync/pull", "host": ["{{base_url}}"], "path": ["sync","pull"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "POST /sync/resolve-conflict",
+      "item": [
+        {
+          "name": "Resolve — accept (Admin)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200 or 404', () => pm.expect([200,404]).to.include(pm.response.code));"
+            ]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_CONFLICT_OP_ID\",\n  \"resolution\": \"accept\",\n  \"reason\": \"Verified by physical recount\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/resolve-conflict", "host": ["{{base_url}}"], "path": ["sync","resolve-conflict"] }
+          }
+        },
+        {
+          "name": "Resolve — discard (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_CONFLICT_OP_ID\",\n  \"resolution\": \"discard\",\n  \"reason\": \"Duplicate entry\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/resolve-conflict", "host": ["{{base_url}}"], "path": ["sync","resolve-conflict"] }
+          }
+        },
+        {
+          "name": "Resolve — override (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_CONFLICT_OP_ID\",\n  \"resolution\": \"override\",\n  \"override_quantity\": 42.0,\n  \"reason\": \"Physical count result\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/resolve-conflict", "host": ["{{base_url}}"], "path": ["sync","resolve-conflict"] }
+          }
+        },
+        {
+          "name": "Resolve — merge (Admin)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_OP_A_ID\",\n  \"resolution\": \"merge\",\n  \"merge_op_id\": \"REPLACE_WITH_OP_B_ID\",\n  \"merged_quantity\": 15.0,\n  \"reason\": \"Reconciled two parallel adjustments\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/resolve-conflict", "host": ["{{base_url}}"], "path": ["sync","resolve-conflict"] }
+          }
+        },
+        {
+          "name": "Resolve — User (no sync.accept) → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 403', () => pm.response.to.have.status(403));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"00000000-0000-4000-a000-000000000001\",\n  \"resolution\": \"accept\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/resolve-conflict", "host": ["{{base_url}}"], "path": ["sync","resolve-conflict"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "POST /sync/cancel",
+      "item": [
+        {
+          "name": "Cancel pending op (Admin)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('2xx or 422/404', () => pm.expect([200,422,404]).to.include(pm.response.code));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_PENDING_OP_ID\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/cancel", "host": ["{{base_url}}"], "path": ["sync","cancel"] }
+          }
+        },
+        {
+          "name": "Cancel non-pending op → 422",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 422', () => pm.response.to.have.status(422));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_APPLIED_OP_ID\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/cancel", "host": ["{{base_url}}"], "path": ["sync","cancel"] }
+          }
+        },
+        {
+          "name": "Cancel another user's op (non-admin) → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 403', () => pm.response.to.have.status(403));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_OTHER_USERS_PENDING_OP_ID\"\n}" },
+            "url": { "raw": "{{base_url}}/sync/cancel", "host": ["{{base_url}}"], "path": ["sync","cancel"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "POST /sync/edit",
+      "item": [
+        {
+          "name": "Edit pending op (owner)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('2xx or 422/404', () => pm.expect([200,422,404]).to.include(pm.response.code));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_PENDING_OP_ID\",\n  \"changes\": {\n    \"quantity_delta\": 5.0,\n    \"notes\": \"Corrected value after recount\",\n    \"reason\": \"Typo in original entry\"\n  }\n}" },
+            "url": { "raw": "{{base_url}}/sync/edit", "host": ["{{base_url}}"], "path": ["sync","edit"] }
+          }
+        },
+        {
+          "name": "Edit non-pending op → 422",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 422', () => pm.response.to.have.status(422));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_APPLIED_OP_ID\",\n  \"changes\": { \"quantity_delta\": 5.0 }\n}" },
+            "url": { "raw": "{{base_url}}/sync/edit", "host": ["{{base_url}}"], "path": ["sync","edit"] }
+          }
+        },
+        {
+          "name": "Edit another user's op (non-admin) → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 403', () => pm.response.to.have.status(403));"]
+          }}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "body": { "mode": "raw", "options": { "raw": { "language": "json" } },
+              "raw": "{\n  \"op_id\": \"REPLACE_WITH_OTHER_USERS_PENDING_OP_ID\",\n  \"changes\": { \"quantity_delta\": 1.0 }\n}" },
+            "url": { "raw": "{{base_url}}/sync/edit", "host": ["{{base_url}}"], "path": ["sync","edit"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "GET /sync/log",
+      "item": [
+        {
+          "name": "Log — all entries (Admin)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('has data array', () => pm.expect(pm.response.json()).to.have.property('data'));",
+              "pm.test('has meta', () => pm.expect(pm.response.json()).to.have.property('meta'));",
+              "pm.test('actor_group_name present', () => { const rows = pm.response.json().data; if (rows.length > 0) pm.expect(rows[0]).to.have.property('actor_group_name'); });"
+            ]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/log?per_page=10",
+              "host": ["{{base_url}}"], "path": ["sync","log"],
+              "query": [{ "key": "per_page", "value": "10" }]
+            }
+          }
+        },
+        {
+          "name": "Log — filter by action",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/log?action=applied&per_page=20",
+              "host": ["{{base_url}}"], "path": ["sync","log"],
+              "query": [{ "key": "action", "value": "applied" }, { "key": "per_page", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Log — filter by date range",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": {
+              "raw": "{{base_url}}/sync/log?date_from=2026-05-01&date_to=2026-05-31",
+              "host": ["{{base_url}}"], "path": ["sync","log"],
+              "query": [{ "key": "date_from", "value": "2026-05-01" }, { "key": "date_to", "value": "2026-05-31" }]
+            }
+          }
+        },
+        {
+          "name": "Log — User without log.view → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('200 (user has log.view)', () => pm.response.to.have.status(200));"]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "url": { "raw": "{{base_url}}/sync/log", "host": ["{{base_url}}"], "path": ["sync","log"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "GET /sync/log/export",
+      "item": [
+        {
+          "name": "Export CSV — Admin",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": [
+              "pm.test('status 200', () => pm.response.to.have.status(200));",
+              "pm.test('content-type csv', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv'));"
+            ]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "text/csv" },
+              { "key": "Authorization", "value": "Bearer {{token_admin}}" }
+            ],
+            "url": { "raw": "{{base_url}}/sync/log/export", "host": ["{{base_url}}"], "path": ["sync","log","export"] }
+          }
+        },
+        {
+          "name": "Export CSV — User (no log.export) → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 403', () => pm.response.to.have.status(403));"]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_user}}" }
+            ],
+            "url": { "raw": "{{base_url}}/sync/log/export", "host": ["{{base_url}}"], "path": ["sync","log","export"] }
+          }
+        },
+        {
+          "name": "Export CSV — Supervisor (no log.export) → 403",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript",
+            "exec": ["pm.test('status 403', () => pm.response.to.have.status(403));"]
+          }}],
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token_supervisor}}" }
+            ],
+            "url": { "raw": "{{base_url}}/sync/log/export", "host": ["{{base_url}}"], "path": ["sync","log","export"] }
+          }
+        }
+      ]
+    }
+
+  ]
+}

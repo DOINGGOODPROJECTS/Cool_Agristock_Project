@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Rotten;
+use App\Services\Sync\SyncStockWriter;
 use Illuminate\Http\Request;
 
 class RottenController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    public function __construct(private SyncStockWriter $writer) {}
+
     public function index()
     {
         app()->setLocale(auth()->user()->locale);
@@ -25,55 +25,41 @@ class RottenController extends Controller
         return view('admin.rottens', compact('rottens'));
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
         //
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        $data = $request->except('_token');
+        $data   = $request->except('_token');
         $rotten = Rotten::create($data);
+
+        // ── Old path (primary) ────────────────────────────────────────────
         $rotten->detail->update(['qty' => $rotten->detail->qty - $rotten->qty]);
         $rotten->detail->stock->update(['qty' => $rotten->detail->stock->qty - $rotten->qty]);
+
+        // ── Sync path (parallel shadow write) ────────────────────────────
+        // The negative delta mirrors the spoilage into inventory_stock.
+        // Rotten record is already created above; applyOpToStock() is NOT
+        // called here to avoid creating a second Rotten record.
+        $detail = $rotten->detail;
+        $stock  = $detail->stock;
+        $this->writer->record(
+            'spoilage',
+            -(float) $rotten->qty,
+            $stock->storage_id,
+            $detail->product_id,
+            $stock->id,
+            'kg',
+            "Spoilage: rotten #{$rotten->id}",
+        );
+
         return redirect()->back()->with('success', 'Rotten created successfully');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
-    }
+    public function show(string $id) { /* */ }
+    public function edit(string $id) { /* */ }
+    public function update(Request $request, string $id) { /* */ }
+    public function destroy(string $id) { /* */ }
 }

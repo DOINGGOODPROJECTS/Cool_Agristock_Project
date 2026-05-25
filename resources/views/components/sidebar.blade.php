@@ -69,6 +69,32 @@
                 </li>
                 @endif  
 
+                {{-- ── Sync Layer ─────────────────────────────────────── --}}
+                <li class="menu-title">Sync</li>
+
+                <li>
+                    <a href="{{ route('inventory-ops.index') }}">
+                        <i class="fas fa-sync-alt"></i> <span>Inventory Ops</span>
+                    </a>
+                </li>
+
+                @if (isGroupAuthorized([1, 2, 3, 4]))
+                <li>
+                    <a href="javascript: void(0);" class="has-arrow">
+                        <i class="fa fa-folder"></i> <span>Sync Admin</span>
+                    </a>
+                    <ul class="sub-menu" aria-expanded="false">
+                        <li><a href="{{ route('sync-sessions.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Sessions</a></li>
+                        <li><a href="{{ route('sync-audit-log.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Audit Log</a></li>
+                        @if (isGroupAuthorized([1]))
+                        <li><a href="{{ route('member-phones.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Member Phones</a></li>
+                        @endif
+                        <li><a href="{{ route('sync-protocol') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Protocol Spec</a></li>
+                    </ul>
+                </li>
+                @endif
+                {{-- ─────────────────────────────────────────────────── --}}
+
                 <li><a href="{{ route('logout') }}" class="text-danger"><i class="fa fa-power-off"></i> <span>@lang('locale.logout')</span></a></li>
             </ul>
         </div>

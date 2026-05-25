@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('group_id')->default(4)->after('email');
-        });
+        if (!Schema::hasColumn('users', 'group_id')) {
+            Schema::table('users', function (Blueprint $table) {
+                $table->unsignedBigInteger('group_id')->default(4)->after('email');
+            });
+        }
     }
 
     /**

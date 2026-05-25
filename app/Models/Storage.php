@@ -70,4 +70,9 @@ class Storage extends Model
 	{
 		return $this->hasMany(Claim::class);
 	}
+
+	public function inventoryOps()
+	{
+		return $this->hasMany(InventoryOp::class);
+	}
 }

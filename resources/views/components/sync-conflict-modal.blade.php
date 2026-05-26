@@ -15,7 +15,7 @@
             <div class="modal-header bg-danger text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-exclamation-triangle me-2"></i>
-                    Conflit de synchronisation
+                    {{ __('locale.sync_conflict_modal_title') }}
                     <span id="scm-counter" class="badge bg-white text-danger ms-2" style="font-size:.7rem"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
@@ -28,13 +28,13 @@
                 <div class="row mb-3">
                     <div class="col-sm-6 mb-2">
                         <div class="border rounded px-3 py-2 h-100">
-                            <div class="text-muted small">Produit</div>
+                            <div class="text-muted small">{{ __('locale.sync_col_product') }}</div>
                             <div class="fw-semibold" id="scm-product">—</div>
                         </div>
                     </div>
                     <div class="col-sm-6 mb-2">
                         <div class="border rounded px-3 py-2 h-100">
-                            <div class="text-muted small">Entrepôt</div>
+                            <div class="text-muted small">{{ __('locale.sync_col_warehouse') }}</div>
                             <div class="fw-semibold" id="scm-storage">—</div>
                         </div>
                     </div>
@@ -45,7 +45,7 @@
                     <div class="col-6">
                         <div class="card bg-warning-subtle border-warning-subtle">
                             <div class="card-body py-2">
-                                <div class="text-muted small mb-1">Votre appareil a enregistré</div>
+                                <div class="text-muted small mb-1">{{ __('locale.scm_device_recorded') }}</div>
                                 <div class="fw-bold fs-5" id="scm-device-qty">—</div>
                             </div>
                         </div>
@@ -53,7 +53,7 @@
                     <div class="col-6">
                         <div class="card bg-info-subtle border-info-subtle">
                             <div class="card-body py-2">
-                                <div class="text-muted small mb-1">Serveur dispose actuellement de</div>
+                                <div class="text-muted small mb-1">{{ __('locale.scm_server_has') }}</div>
                                 <div class="fw-bold fs-5" id="scm-server-qty">—</div>
                             </div>
                         </div>
@@ -63,7 +63,7 @@
                 {{-- Raison --}}
                 <div class="alert alert-danger py-2 small mb-3">
                     <i class="fas fa-info-circle me-1"></i>
-                    <strong>Raison du conflit :</strong>
+                    <strong>{{ __('locale.scm_conflict_reason') }}</strong>
                     <span id="scm-reason">—</span>
                 </div>
 
@@ -72,30 +72,30 @@
                 <div id="scm-merge-form" style="display:none">
                     <div class="card border-warning mb-3">
                         <div class="card-header bg-warning-subtle py-2 fw-semibold small">
-                            <i class="fas fa-code-branch me-1"></i> Fusionner les deux opérations
+                            <i class="fas fa-code-branch me-1"></i> {{ __('locale.scm_merge_header') }}
                         </div>
                         <div class="card-body">
                             <div class="row mb-2">
                                 <div class="col-6">
-                                    <label class="form-label small mb-1">Qté Op A (la vôtre)</label>
+                                    <label class="form-label small mb-1">{{ __('locale.scm_qty_a') }}</label>
                                     <input type="number" step="0.001" class="form-control form-control-sm"
                                            id="scm-merge-qty-a" readonly>
                                 </div>
                                 <div class="col-6">
-                                    <label class="form-label small mb-1">Qté Op B (rivale)</label>
+                                    <label class="form-label small mb-1">{{ __('locale.scm_qty_b') }}</label>
                                     <input type="number" step="0.001" class="form-control form-control-sm"
                                            id="scm-merge-qty-b" readonly>
                                 </div>
                             </div>
                             <div class="mb-2">
-                                <label class="form-label small mb-1">Quantité fusionnée à appliquer <span class="text-danger">*</span></label>
+                                <label class="form-label small mb-1">{{ __('locale.scm_merged_qty') }} <span class="text-danger">*</span></label>
                                 <input type="number" step="0.001" class="form-control form-control-sm"
-                                       id="scm-merged-qty" placeholder="ex : 1 250">
+                                       id="scm-merged-qty" placeholder="{{ __('locale.scm_merged_qty_ph') }}">
                             </div>
                             <div>
-                                <label class="form-label small mb-1">Motif de la fusion <span class="text-danger">*</span></label>
+                                <label class="form-label small mb-1">{{ __('locale.scm_merge_reason') }} <span class="text-danger">*</span></label>
                                 <input type="text" class="form-control form-control-sm"
-                                       id="scm-merge-reason" placeholder="ex : Recomptage physique…">
+                                       id="scm-merge-reason" placeholder="{{ __('locale.scm_merge_reason_ph') }}">
                             </div>
                         </div>
                     </div>
@@ -106,18 +106,18 @@
                 <div id="scm-edit-form" style="display:none">
                     <div class="card border-info mb-3">
                         <div class="card-header bg-info-subtle py-2 fw-semibold small">
-                            <i class="fas fa-pencil-alt me-1"></i> Corriger et resoumettre
+                            <i class="fas fa-pencil-alt me-1"></i> {{ __('locale.scm_correct_header') }}
                         </div>
                         <div class="card-body">
                             <div class="mb-2">
-                                <label class="form-label small mb-1">Nouveau delta de quantité <span class="text-danger">*</span></label>
+                                <label class="form-label small mb-1">{{ __('locale.scm_new_qty_delta') }} <span class="text-danger">*</span></label>
                                 <input type="number" step="0.001" class="form-control form-control-sm"
-                                       id="scm-edit-qty" placeholder="ex : −500">
+                                       id="scm-edit-qty" placeholder="{{ __('locale.scm_qty_ph') }}">
                             </div>
                             <div>
-                                <label class="form-label small mb-1">Notes</label>
+                                <label class="form-label small mb-1">{{ __('locale.sync_edit_notes_label') }}</label>
                                 <textarea class="form-control form-control-sm" rows="2"
-                                          id="scm-edit-notes" placeholder="Notes (facultatif)…"></textarea>
+                                          id="scm-edit-notes" placeholder="{{ __('locale.sync_edit_notes_ph') }}"></textarea>
                             </div>
                         </div>
                     </div>
@@ -146,31 +146,31 @@
                     {{-- Accepter — groups 1-4 --}}
                     @if ($canAccept)
                     <button type="button" class="btn btn-success btn-sm" id="scm-accept-btn">
-                        <i class="fas fa-check me-1"></i> Accepter
+                        <i class="fas fa-check me-1"></i> {{ __('locale.sync_btn_accept') }}
                     </button>
                     @endif
 
                     {{-- Ignorer — all groups --}}
                     <button type="button" class="btn btn-secondary btn-sm" id="scm-discard-btn">
-                        <i class="fas fa-ban me-1"></i> Ignorer
+                        <i class="fas fa-ban me-1"></i> {{ __('locale.sync_btn_discard') }}
                     </button>
 
                     {{-- Fusionner toggle / confirm — admin only --}}
                     @if ($canMerge)
                     <button type="button" class="btn btn-warning btn-sm" id="scm-merge-toggle-btn">
-                        <i class="fas fa-code-branch me-1"></i> Fusionner
+                        <i class="fas fa-code-branch me-1"></i> {{ __('locale.sync_btn_merge') }}
                     </button>
                     <button type="button" class="btn btn-warning btn-sm d-none" id="scm-merge-confirm-btn">
-                        <i class="fas fa-check me-1"></i> Confirmer la fusion
+                        <i class="fas fa-check me-1"></i> {{ __('locale.scm_confirm_merge') }}
                     </button>
                     @endif
 
                     {{-- Corriger toggle / confirm — all groups --}}
                     <button type="button" class="btn btn-info btn-sm" id="scm-edit-toggle-btn">
-                        <i class="fas fa-pencil-alt me-1"></i> Corriger
+                        <i class="fas fa-pencil-alt me-1"></i> {{ __('locale.sync_btn_edit') }}
                     </button>
                     <button type="button" class="btn btn-info btn-sm d-none" id="scm-edit-confirm-btn">
-                        <i class="fas fa-check me-1"></i> Confirmer la correction
+                        <i class="fas fa-check me-1"></i> {{ __('locale.scm_confirm_correct') }}
                     </button>
                 </div>
 
@@ -182,6 +182,17 @@
 <script>
 (function () {
     'use strict';
+
+    const SCM_I18N = {
+        accepted:          @json(__('locale.scm_accepted')),
+        discarded:         @json(__('locale.scm_discarded')),
+        merged:            @json(__('locale.scm_merged')),
+        corrected:         @json(__('locale.scm_corrected')),
+        mergeRequired:     @json(__('locale.scm_merge_required')),
+        noRival:           @json(__('locale.scm_no_rival')),
+        qtyRequired:       @json(__('locale.scm_qty_required')),
+        error:             @json(__('locale.scm_error')),
+    };
 
     const $ = id => document.getElementById(id);
 
@@ -295,23 +306,23 @@
                 await apiPost('/api/sync/resolve-conflict', {
                     op_id: c.op_id, resolution: 'accept',
                 });
-                showFeedback('Opération acceptée et appliquée au stock.', 'success');
+                showFeedback(SCM_I18N.accepted, 'success');
 
             } else if (action === 'discard') {
                 await apiPost('/api/sync/resolve-conflict', {
                     op_id: c.op_id, resolution: 'discard',
                 });
-                showFeedback('Opération ignorée.', 'secondary');
+                showFeedback(SCM_I18N.discarded, 'secondary');
 
             } else if (action === 'merge') {
                 const qty    = parseFloat($('scm-merged-qty')?.value);
                 const reason = $('scm-merge-reason')?.value?.trim() ?? '';
                 if (isNaN(qty) || !reason) {
-                    showFeedback('Quantité fusionnée et motif sont obligatoires.', 'warning');
+                    showFeedback(SCM_I18N.mergeRequired, 'warning');
                     working = false; return;
                 }
                 if (!c.conflict_with_op_id) {
-                    showFeedback('Fusion impossible : aucune opération rivale identifiée.', 'warning');
+                    showFeedback(SCM_I18N.noRival, 'warning');
                     working = false; return;
                 }
                 await apiPost('/api/sync/resolve-conflict', {
@@ -321,13 +332,13 @@
                     merged_quantity: qty,
                     reason,
                 });
-                showFeedback('Opérations fusionnées et appliquées.', 'success');
+                showFeedback(SCM_I18N.merged, 'success');
 
             } else if (action === 'correct') {
                 const newQty = parseFloat($('scm-edit-qty')?.value);
                 const notes  = $('scm-edit-notes')?.value?.trim() ?? '';
                 if (isNaN(newQty)) {
-                    showFeedback('Quantité delta obligatoire.', 'warning');
+                    showFeedback(SCM_I18N.qtyRequired, 'warning');
                     working = false; return;
                 }
                 // Discard the conflicted op then re-queue corrected op via SyncManager
@@ -345,7 +356,7 @@
                         notes,
                     });
                 }
-                showFeedback('Correction soumise — nouvelle opération en attente de synchronisation.', 'info');
+                showFeedback(SCM_I18N.corrected, 'info');
             }
 
             // Remove resolved conflict from the local queue
@@ -364,7 +375,7 @@
             }
 
         } catch (err) {
-            showFeedback('Erreur : ' + err.message, 'danger');
+            showFeedback(SCM_I18N.error + ' ' + err.message, 'danger');
         } finally {
             working = false;
         }

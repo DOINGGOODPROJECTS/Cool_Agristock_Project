@@ -38,8 +38,8 @@
                             @foreach ($tariffs as $item)
                             <tr>
                                 <td>{{ $loop->iteration }}</td>
-                                <td>{{ $item->storage->name }}</td>
-                                <td>{{ $item->capacity->name }} [ <b>{{ $item->min_qty." - ".$item->max_qty }}</b> ]</td>
+                                <td>{{ optional($item->storage)->name ?? '—' }}</td>
+                                <td>{{ optional($item->capacity)->name ?? '—' }} [ <b>{{ $item->min_qty." - ".$item->max_qty }}</b> ]</td>
                                 <td>{{ $item->duration }}h</td>
                                 <td>{{ moneyFormat($item->price) }}</td>
                                 @if (isGroupAuthorized([1, 2]))

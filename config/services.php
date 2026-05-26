@@ -37,4 +37,11 @@ return [
         'redirect' => env('GOOGLE_REDIRECT_URI'),
     ],
 
+    'africastalking' => [
+        'username'    => env('AT_USERNAME', 'sandbox'),
+        'api_key'     => env('AT_API_KEY', 'sandbox'),
+        'sender_id'   => env('AT_SENDER_ID'),        // Sender ID / shortcode for Côte d'Ivoire
+        'webhook_key' => env('AT_WEBHOOK_KEY'),       // HMAC key for signature verification
+    ],
+
 ];

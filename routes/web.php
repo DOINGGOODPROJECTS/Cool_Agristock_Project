@@ -143,4 +143,9 @@ Route::middleware(['auth', 'locale'])->group(function () {
     });   
 });
 
+// ── Africa's Talking SMS webhook ─────────────────────────────────────────
+// No auth / CSRF — AT posts here directly. Signature verified in controller.
+Route::post('/webhook/sms', \App\Http\Controllers\Webhook\SmsController::class)
+    ->name('webhook.sms');
+
 require __DIR__.'/auth.php';

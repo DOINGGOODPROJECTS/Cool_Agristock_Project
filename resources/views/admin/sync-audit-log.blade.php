@@ -7,17 +7,17 @@
 
     @php
     $actionLabels = [
-        'submitted'        => 'Soumis',
-        'applied'          => 'Appliqué',
-        'conflict_flagged' => 'Conflit détecté',
-        'accepted'         => 'Accepté',
-        'discarded'        => 'Ignoré',
-        'cancelled'        => 'Annulé',
-        'merged'           => 'Fusionné',
-        'edited'           => 'Modifié',
-        'overridden'       => 'Corrigé',
-        'superseded'       => 'Remplacé',
-        'reconciled'       => 'Réconcilié',
+        'submitted'        => __('locale.action_submitted'),
+        'applied'          => __('locale.action_applied'),
+        'conflict_flagged' => __('locale.action_conflict_flagged'),
+        'accepted'         => __('locale.action_accepted'),
+        'discarded'        => __('locale.action_discarded'),
+        'cancelled'        => __('locale.action_cancelled'),
+        'merged'           => __('locale.action_merged'),
+        'edited'           => __('locale.action_edited'),
+        'overridden'       => __('locale.action_overridden'),
+        'superseded'       => __('locale.action_superseded'),
+        'reconciled'       => __('locale.action_reconciled'),
     ];
     $actionBadge = [
         'applied'          => 'success',
@@ -210,27 +210,27 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header bg-primary-subtle">
-                    <h5 class="modal-title">Avant / Après</h5>
+                    <h5 class="modal-title">@lang('locale.diff_modal_title')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div id="diff-reason-row" class="alert alert-warning py-2 small mb-3" style="display:none">
                         <i class="fas fa-comment-alt me-1"></i>
-                        <strong>Motif :</strong> <span id="diff-reason-text"></span>
+                        <strong>@lang('locale.diff_reason') :</strong> <span id="diff-reason-text"></span>
                     </div>
                     <div class="row">
                         <div class="col-6">
-                            <h6 class="text-muted">Avant</h6>
+                            <h6 class="text-muted">@lang('locale.diff_before')</h6>
                             <pre id="before-val" class="bg-light p-2 rounded small" style="min-height:60px;white-space:pre-wrap"></pre>
                         </div>
                         <div class="col-6">
-                            <h6 class="text-muted">Après</h6>
+                            <h6 class="text-muted">@lang('locale.diff_after')</h6>
                             <pre id="after-val" class="bg-light p-2 rounded small" style="min-height:60px;white-space:pre-wrap"></pre>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">@lang('locale.btn_close')</button>
                 </div>
             </div>
         </div>
@@ -260,8 +260,9 @@
             } else {
                 reasonRow.style.display = 'none';
             }
-            document.getElementById('before-val').textContent = btn.getAttribute('data-before') || 'null';
-            document.getElementById('after-val').textContent  = btn.getAttribute('data-after')  || 'null';
+            const noData = @json(__('locale.diff_no_data'));
+            document.getElementById('before-val').textContent = btn.getAttribute('data-before') || noData;
+            document.getElementById('after-val').textContent  = btn.getAttribute('data-after')  || noData;
         });
     </script>
     @endpush

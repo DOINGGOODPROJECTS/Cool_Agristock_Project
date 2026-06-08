@@ -70,26 +70,26 @@
                 @endif  
 
                 {{-- ── Sync Layer ─────────────────────────────────────── --}}
-                <li class="menu-title">Sync</li>
+                <li class="menu-title">@lang('locale.nav_sync_section')</li>
 
                 <li>
                     <a href="{{ route('inventory-ops.index') }}">
-                        <i class="fas fa-sync-alt"></i> <span>Inventory Ops</span>
+                        <i class="fas fa-sync-alt"></i> <span>@lang('locale.nav_inventory_ops')</span>
                     </a>
                 </li>
 
                 @if (isGroupAuthorized([1, 2, 3, 4]))
                 <li>
                     <a href="javascript: void(0);" class="has-arrow">
-                        <i class="fa fa-folder"></i> <span>Sync Admin</span>
+                        <i class="fa fa-folder"></i> <span>@lang('locale.nav_sync_admin')</span>
                     </a>
                     <ul class="sub-menu" aria-expanded="false">
-                        <li><a href="{{ route('sync-sessions.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Sessions</a></li>
-                        <li><a href="{{ route('sync-audit-log.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Audit Log</a></li>
+                        <li><a href="{{ route('sync-sessions.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sync_sessions')</a></li>
+                        <li><a href="{{ route('sync-audit-log.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sync_audit_log')</a></li>
                         @if (isGroupAuthorized([1]))
-                        <li><a href="{{ route('member-phones.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Member Phones</a></li>
+                        <li><a href="{{ route('member-phones.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_member_phones')</a></li>
                         @endif
-                        <li><a href="{{ route('sync-protocol') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> Protocol Spec</a></li>
+                        <li><a href="{{ route('sync-protocol') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sync_protocol')</a></li>
                     </ul>
                 </li>
                 @endif

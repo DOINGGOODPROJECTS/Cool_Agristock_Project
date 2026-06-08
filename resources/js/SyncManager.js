@@ -26,13 +26,15 @@
 const DB_NAME    = 'agristock_sync';
 const DB_VERSION = 1;
 
-class SyncManager {
+export class SyncManager {
     // Private fields
-    #db         = null;
-    #deviceId   = null;
-    #userId     = null;
-    #logicalSeq = 0;
-    #isSyncing  = false;
+    #db                 = null;
+    #deviceId           = null;
+    #userId             = null;
+    #logicalSeq         = 0;
+    #isSyncing          = false;
+    #onlineListener     = null;
+    #swSyncListener     = null;
 
     // ── Boot ─────────────────────────────────────────────────────────────
 
@@ -46,13 +48,25 @@ class SyncManager {
         this.#userId     = this.#getUserId();
         this.#logicalSeq = await this.#loadLogicalSeq();
 
-        // Sync when connectivity is restored
-        window.addEventListener('online', () => this.sync());
+        this.#onlineListener = () => this.sync();
+        this.#swSyncListener = () => this.sync();
 
-        // Sync when the service worker fires the background-sync event
-        window.addEventListener('agristock:sync-requested', () => this.sync());
+        window.addEventListener('online', this.#onlineListener);
+        window.addEventListener('agristock:sync-requested', this.#swSyncListener);
 
         return this;
+    }
+
+    /** Remove event listeners registered by init(). Call during teardown / testing. */
+    destroy() {
+        if (this.#onlineListener) {
+            window.removeEventListener('online', this.#onlineListener);
+            this.#onlineListener = null;
+        }
+        if (this.#swSyncListener) {
+            window.removeEventListener('agristock:sync-requested', this.#swSyncListener);
+            this.#swSyncListener = null;
+        }
     }
 
     // ── recordOp ─────────────────────────────────────────────────────────

@@ -432,17 +432,17 @@
             reconciled: 'info',
         };
         const actionLabel = {
-            submitted:        'Soumis',
-            applied:          'Appliqué',
-            conflict_flagged: 'Conflit détecté',
-            accepted:         'Accepté',
-            discarded:        'Ignoré',
-            cancelled:        'Annulé',
-            merged:           'Fusionné',
-            edited:           'Modifié',
-            overridden:       'Corrigé',
-            superseded:       'Remplacé',
-            reconciled:       'Réconcilié',
+            submitted:        @json(__('locale.action_submitted')),
+            applied:          @json(__('locale.action_applied')),
+            conflict_flagged: @json(__('locale.action_conflict_flagged')),
+            accepted:         @json(__('locale.action_accepted')),
+            discarded:        @json(__('locale.action_discarded')),
+            cancelled:        @json(__('locale.action_cancelled')),
+            merged:           @json(__('locale.action_merged')),
+            edited:           @json(__('locale.action_edited')),
+            overridden:       @json(__('locale.action_overridden')),
+            superseded:       @json(__('locale.action_superseded')),
+            reconciled:       @json(__('locale.action_reconciled')),
         };
 
         document.querySelectorAll('.btn-history').forEach(btn => {

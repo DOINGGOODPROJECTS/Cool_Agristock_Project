@@ -285,4 +285,34 @@
         'scm_no_rival'            => 'Merge not possible: no rival operation identified.',
         'scm_qty_required'        => 'Quantity delta is required.',
         'scm_error'               => 'Error:',
+
+        // ── Diff modal ────────────────────────────────────────────────
+        'diff_modal_title'        => 'Before / After',
+        'diff_before'             => 'Before',
+        'diff_after'              => 'After',
+        'diff_reason'             => 'Reason',
+        'diff_no_data'            => '— No data —',
+        'btn_close'               => 'Close',
+
+        // ── Audit log action labels ───────────────────────────────────
+        'action_submitted'        => 'Submitted',
+        'action_applied'          => 'Applied',
+        'action_conflict_flagged' => 'Conflict detected',
+        'action_accepted'         => 'Accepted',
+        'action_discarded'        => 'Discarded',
+        'action_cancelled'        => 'Cancelled',
+        'action_merged'           => 'Merged',
+        'action_edited'           => 'Edited',
+        'action_overridden'       => 'Overridden',
+        'action_superseded'       => 'Superseded',
+        'action_reconciled'       => 'Reconciled',
+
+        // ── Sidebar — Sync section ────────────────────────────────────
+        'nav_sync_section'        => 'Sync',
+        'nav_inventory_ops'       => 'Inventory Ops',
+        'nav_sync_admin'          => 'Sync Admin',
+        'nav_sync_sessions'       => 'Sessions',
+        'nav_sync_audit_log'      => 'Audit Log',
+        'nav_member_phones'       => 'Member Phones',
+        'nav_sync_protocol'       => 'Protocol Spec',
     );

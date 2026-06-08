@@ -292,4 +292,34 @@
         'scm_no_rival'            => 'Fusion impossible : aucune opération rivale identifiée.',
         'scm_qty_required'        => 'Quantité delta obligatoire.',
         'scm_error'               => 'Erreur :',
+
+        // ── Diff modal ────────────────────────────────────────────────
+        'diff_modal_title'        => 'Avant / Après',
+        'diff_before'             => 'Avant',
+        'diff_after'              => 'Après',
+        'diff_reason'             => 'Motif',
+        'diff_no_data'            => '— Aucune donnée —',
+        'btn_close'               => 'Fermer',
+
+        // ── Audit log action labels ───────────────────────────────────
+        'action_submitted'        => 'Soumis',
+        'action_applied'          => 'Appliqué',
+        'action_conflict_flagged' => 'Conflit détecté',
+        'action_accepted'         => 'Accepté',
+        'action_discarded'        => 'Ignoré',
+        'action_cancelled'        => 'Annulé',
+        'action_merged'           => 'Fusionné',
+        'action_edited'           => 'Modifié',
+        'action_overridden'       => 'Corrigé',
+        'action_superseded'       => 'Remplacé',
+        'action_reconciled'       => 'Réconcilié',
+
+        // ── Sidebar — section Sync ────────────────────────────────────
+        'nav_sync_section'        => 'Sync',
+        'nav_inventory_ops'       => 'Opérations de Stock',
+        'nav_sync_admin'          => 'Admin Sync',
+        'nav_sync_sessions'       => 'Sessions',
+        'nav_sync_audit_log'      => 'Journal d\'Audit',
+        'nav_member_phones'       => 'Téléphones Membres',
+        'nav_sync_protocol'       => 'Protocole Sync',
     );

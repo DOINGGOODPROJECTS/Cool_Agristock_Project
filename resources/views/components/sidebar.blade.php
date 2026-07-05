@@ -60,6 +60,10 @@
                         <li><a href="{{ route('billings.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i>@lang('locale.billing', ['suffix'=>'s'])</a></li>
                         <li><a href="{{ route('payments.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.payment', ['suffix'=>'s'])</a></li>
                         <li><a href="{{ route('tariffs.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.tariff', ['suffix'=>'s'])</a></li>
+                        <li><a href="{{ route('accounting.invoices.create') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.acct_nav_invoices')</a></li>
+                        <li><a href="{{ route('accounting.invoices.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.acct_nav_invoice_ledger')</a></li>
+                        <li><a href="{{ route('accounting.journal.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.acct_nav_journal')</a></li>
+                        <li><a href="{{ route('accounting.journal.ledger') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.acct_nav_journal_ledger')</a></li>
                     </ul>
                 </li>
                 <li>

@@ -53,9 +53,9 @@ echo "⚙️ Creating subdomain environment file..."
 cat > "$DEPLOY_DIR/.env" << 'EOF'
 APP_NAME="Cool AgriStock"
 APP_ENV=production
-APP_KEY=base64:lAOOI+D74FMqZ2fTHxTBmAy/F8TjVY2qyxj1ASFNEEo=
+APP_KEY=base64:IGpXjiH2Gy12+XfAYOuEac//6WpYYciUpzotzo02xKQ=
 APP_DEBUG=false
-APP_URL=https://api.agristock.fraiszo.com
+APP_URL=https://agristock.fraiszo.com
 
 LOG_CHANNEL=stack
 LOG_DEPRECATIONS_CHANNEL=null
@@ -84,32 +84,40 @@ REDIS_PORT=6379
 MAIL_MAILER=smtp
 MAIL_HOST=smtp.gmail.com
 MAIL_PORT=587
-MAIL_USERNAME=globeguruapp@gmail.com
-MAIL_PASSWORD=yiimkhtghjsgrhhj
+MAIL_USERNAME=africaweb3lab@gmail.com
+MAIL_PASSWORD="xhfc gpoh efbh yjji"
 MAIL_ENCRYPTION=tls
 MAIL_FROM_ADDRESS=noreply@agristock.fraiszo.com
-MAIL_FROM_NAME=CoolAgriStock
+MAIL_FROM_NAME="Cool Agristock"
 
-AWS_ACCESS_KEY_ID=
-AWS_SECRET_ACCESS_KEY=
-AWS_DEFAULT_REGION=us-east-1
-AWS_BUCKET=
-AWS_USE_PATH_STYLE_ENDPOINT=false
+LOCALE=fr
+LOCALE_FALLBACK=en
+APP_LOCALE=fr
 
-PUSHER_APP_ID=
-PUSHER_APP_KEY=
-PUSHER_APP_SECRET=
-PUSHER_HOST=
-PUSHER_PORT=443
-PUSHER_SCHEME=https
-PUSHER_APP_CLUSTER=mt1
+DEBUGBAR_ENABLED=false
 
-VITE_APP_NAME="${APP_NAME}"
-VITE_PUSHER_APP_KEY="${PUSHER_APP_KEY}"
-VITE_PUSHER_HOST="${PUSHER_HOST}"
-VITE_PUSHER_PORT="${PUSHER_PORT}"
-VITE_PUSHER_SCHEME="${PUSHER_SCHEME}"
-VITE_PUSHER_APP_CLUSTER="${PUSHER_APP_CLUSTER}"
+TWILIO_SID=
+TWILIO_AUTH_TOKEN=
+TWILIO_PHONE=
+
+# ── Africa's Talking SMS ───────────────────────────────────────────────
+AT_USERNAME=sandbox
+AT_API_KEY=atsk_89966f9b90e930cb9f4363ed34ed2bd6237f82f54dd2b72ce70280d9db6cdb8c672a2fc4
+AT_SENDER_ID=20098
+AT_WEBHOOK_KEY=
+
+# Odoo Integration
+ODOO_URL=https://coolagristock.odoo.com
+ODOO_DATABASE=coolagristock
+ODOO_USERNAME=client@fraiszo.com
+ODOO_API_KEY=43c26fdbed2df75d7006c668641d68890a0aeec8
+ODOO_COMPANY_ID=1
+ODOO_PROTOCOL=xmlrpc
+ODOO_TIMEOUT=30
+ODOO_RETRY_MAX=3
+ODOO_RETRY_DELAY_MS=500
+ODOO_DRY_RUN=false
+ODOO_EXTERNAL_ID_MODULE=coolagristock
 EOF
 
 echo "🔧 Creating subdomain-optimized .htaccess..."

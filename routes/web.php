@@ -124,6 +124,37 @@ Route::middleware(['auth', 'locale'])->group(function () {
         Route::get('/exports/all', [ExportController::class, 'exportAll'])->name('exports.all');
     });
 
+    // ── Accounting ────────────────────────────────────────────────────────────
+    Route::prefix('accounting')->name('accounting.')->group(function () {
+        Route::get('/invoices',                [\App\Http\Controllers\Accounting\InvoiceController::class, 'index'])->name('invoices.index');
+        Route::get('/invoices/create',         [\App\Http\Controllers\Accounting\InvoiceController::class, 'create'])->name('invoices.create');
+        Route::post('/invoices',               [\App\Http\Controllers\Accounting\InvoiceController::class, 'storeManual'])->name('invoices.store');
+        Route::get('/invoices/{id}',           [\App\Http\Controllers\Accounting\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices/{id}/pdf',       [\App\Http\Controllers\Accounting\InvoiceController::class, 'pdf'])->name('invoices.pdf');
+        Route::delete('/invoices/{id}',        [\App\Http\Controllers\Accounting\InvoiceController::class, 'destroy'])->name('invoices.destroy');
+        Route::get('/invoices/{id}/line/{lineId}/pdf', [\App\Http\Controllers\Accounting\InvoiceController::class, 'linePdf'])->name('invoices.line-pdf');
+        Route::post('/invoices/generate',      [\App\Http\Controllers\Accounting\InvoiceController::class, 'generate'])->name('invoices.generate');
+        Route::post('/invoices/process-line',  [\App\Http\Controllers\Accounting\InvoiceController::class, 'processLine'])->name('invoices.process-line');
+
+        Route::get('/journal',               [\App\Http\Controllers\Accounting\JournalController::class, 'index'])->name('journal.index');
+        Route::get('/journal/ledger',        [\App\Http\Controllers\Accounting\JournalController::class, 'ledger'])->name('journal.ledger');
+        Route::get('/journal/create',        [\App\Http\Controllers\Accounting\JournalController::class, 'create'])->name('journal.create');
+        Route::post('/journal',              [\App\Http\Controllers\Accounting\JournalController::class, 'store'])->name('journal.store');
+        Route::post('/journal/process',      [\App\Http\Controllers\Accounting\JournalController::class, 'processEntry'])->name('journal.process');
+        Route::post('/journal/process-line', [\App\Http\Controllers\Accounting\JournalController::class, 'processLine'])->name('journal.process-line');
+        Route::get('/journal/{id}',          [\App\Http\Controllers\Accounting\JournalController::class, 'show'])->name('journal.show');
+        Route::post('/journal/{id}/submit',  [\App\Http\Controllers\Accounting\JournalController::class, 'submit'])->name('journal.submit');
+        Route::delete('/journal/{id}',       [\App\Http\Controllers\Accounting\JournalController::class, 'destroy'])->name('journal.destroy');
+
+        Route::middleware('admin')->group(function () {
+            Route::post('/journal/{id}/approve',      [\App\Http\Controllers\Accounting\JournalController::class, 'approve'])->name('journal.approve');
+            Route::post('/journal/{id}/reject',       [\App\Http\Controllers\Accounting\JournalController::class, 'reject'])->name('journal.reject');
+            Route::post('/journal/{id}/approve-odoo', [\App\Http\Controllers\Accounting\JournalController::class, 'approveOdoo'])->name('journal.approve-odoo');
+            Route::post('/journal/{id}/reject-odoo',  [\App\Http\Controllers\Accounting\JournalController::class, 'rejectOdoo'])->name('journal.reject-odoo');
+        });
+    });
+    // ─────────────────────────────────────────────────────────────────────────
+
     Route::middleware('supervisor')->group(function () {
         Route::get('/incidents/{status}/{id}', [IncidentController::class, 'setStatus'])->name('incidents.status');
 

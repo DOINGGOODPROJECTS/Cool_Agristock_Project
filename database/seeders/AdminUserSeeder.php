@@ -25,7 +25,7 @@ class AdminUserSeeder extends Seeder
             'name' => env('ADMIN_USER_NAME', 'System Administrator'),
             'username' => env('ADMIN_USER_USERNAME', 'sysadmin'),
             'phone' => env('ADMIN_USER_PHONE', '0500000000'),
-            'locale' => env('ADMIN_USER_LOCALE', 'en'),
+            'language' => env('ADMIN_USER_LOCALE', 'fr'),
             'group_id' => 1,
         ]);
 

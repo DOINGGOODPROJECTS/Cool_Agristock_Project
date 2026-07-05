@@ -1,4 +1,4 @@
-<div class="custom-setting bg-info pe-0 d-flex flex-column rounded-start">
+<div class="custom-setting bg-info pe-0 d-flex flex-column rounded-start" style="bottom:10%">
     <button type="button" class="btn btn-wide border-0 text-white fs-20 avatar-sm rounded-end-0" id="light-dark-mode">
         <i class="mdi mdi-brightness-7 align-middle"></i>
         <i class="mdi mdi-white-balance-sunny align-middle"></i>

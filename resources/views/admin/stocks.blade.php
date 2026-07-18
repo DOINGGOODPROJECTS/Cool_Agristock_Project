@@ -41,8 +41,8 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ date('d/m/Y H:i:s', strtotime($item->created_at)) }}</td>
                                 <td>{{ $item->ref }}</td>
-                                <td>{{ $item->customer->name }}</td>
-                                <td>{{ $item->storage->name }}</td>
+                                <td>{{ optional($item->customer)->name ?? 'N/A' }}</td>
+                                <td>{{ optional($item->storage)->name ?? 'N/A' }}</td>
                                 <td>{{ $item->qty }} kg</td>
                                 <td class="">{{ date('d/m/Y', strtotime($item->created_at->addDays($item->expired_at))) ." / ".$item->expired_at }} @lang('locale.days')</td>
                                 <td>

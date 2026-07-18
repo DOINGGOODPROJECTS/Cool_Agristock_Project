@@ -210,6 +210,13 @@ class JournalController extends Controller
 
     private function buildEntryFromRequest(Request $request): JournalEntry
     {
+        [$entryData, $lineData] = $this->extractEntryPayload($request);
+
+        return $this->journal->createEntry($entryData, $lineData, auth()->id());
+    }
+
+    private function extractEntryPayload(Request $request): array
+    {
         $data = $request->validate([
             'lines'                         => ['required', 'array', 'min:2'],
             'lines.*.line_date'             => ['required', 'date'],
@@ -243,39 +250,88 @@ class JournalController extends Controller
         $refs        = $lines->pluck('document_reference')->filter()->unique()->values();
         $lineCount   = $lines->count();
 
-        return $this->journal->createEntry(
-            [
-                'description'         => "{$lineCount}-line journal batch — " . $lines->pluck('description')->filter()->implode(', '),
-                'entry_date'          => $lines->first()['line_date'],
-                'entry_type'          => 'manual',
-                'journal_name'        => $journals->count() === 1 ? $journals->first() : ($journals->implode(' / ') ?: null),
-                'document_reference'  => $refs->count() === 1 ? $refs->first() : $refs->implode(', '),
-                'event_type'          => $eventTypes->count() === 1 ? $eventTypes->first() : $eventTypes->implode(', '),
-                'currency'            => $lines->first()['currency'],
-                'send_to_odoo'        => $sendToOdoo,
-                'comments'            => $lines->pluck('comments')->filter()->implode("\n"),
-            ],
-            $lines->map(fn (array $line) => [
-                'line_date'           => $line['line_date'],
-                'journal'             => $line['journal'] ?? null,
-                'document_reference'  => $line['document_reference'] ?? null,
-                'customer_id'         => ($line['customer_id'] ?? null) ?: null,
-                'customer_name'       => $line['customer_name'] ?? null,
-                'event_type'          => $line['event_type'],
-                'provenance_category' => $line['provenance_category'] ?? null,
-                'description'         => $line['description'],
-                'account_code'        => $line['account_code'] ?? '',
-                'account_name'        => '',
-                'label'               => $line['description'],
-                'debit'               => $line['debit'],
-                'credit'              => $line['credit'],
-                'currency'            => $line['currency'],
-                'send_to_odoo'        => $line['send_to_odoo'],
-                'odoo_status'         => $line['odoo_status'],
-                'comments'            => $line['comments'] ?? null,
-            ])->all(),
-            auth()->id()
-        );
+        $entryData = [
+            'description'         => "{$lineCount}-line journal batch — " . $lines->pluck('description')->filter()->implode(', '),
+            'entry_date'          => $lines->first()['line_date'],
+            'entry_type'          => 'manual',
+            'journal_name'        => $journals->count() === 1 ? $journals->first() : ($journals->implode(' / ') ?: null),
+            'document_reference'  => $refs->count() === 1 ? $refs->first() : $refs->implode(', '),
+            'event_type'          => $eventTypes->count() === 1 ? $eventTypes->first() : $eventTypes->implode(', '),
+            'currency'            => $lines->first()['currency'],
+            'send_to_odoo'        => $sendToOdoo,
+            'comments'            => $lines->pluck('comments')->filter()->implode("\n"),
+        ];
+
+        $lineData = $lines->map(fn (array $line) => [
+            'line_date'           => $line['line_date'],
+            'journal'             => $line['journal'] ?? null,
+            'document_reference'  => $line['document_reference'] ?? null,
+            'customer_id'         => ($line['customer_id'] ?? null) ?: null,
+            'customer_name'       => $line['customer_name'] ?? null,
+            'event_type'          => $line['event_type'],
+            'provenance_category' => $line['provenance_category'] ?? null,
+            'description'         => $line['description'],
+            'account_code'        => $line['account_code'] ?? '',
+            'account_name'        => '',
+            'label'               => $line['description'],
+            'debit'               => $line['debit'],
+            'credit'              => $line['credit'],
+            'currency'            => $line['currency'],
+            'send_to_odoo'        => $line['send_to_odoo'],
+            'odoo_status'         => $line['odoo_status'],
+            'comments'            => $line['comments'] ?? null,
+        ])->all();
+
+        return [$entryData, $lineData];
+    }
+
+    public function edit(int $id)
+    {
+        $entry = JournalEntry::with('lines')->findOrFail($id);
+
+        if ($entry->status !== 'draft') {
+            return redirect()->route('accounting.journal.show', $id)
+                ->with('error', 'Only draft entries can be edited.');
+        }
+
+        $journalOptions = ['Purchase Journal', 'Sales Journal', 'Cash Journal', 'Bank Journal', 'General Journal', 'Other'];
+        $eventTypes = ['storage_fee', 'drying_fee', 'handling_fee', 'storage_fee / drying_fee', 'refund', 'Other'];
+        $provenanceOptions = ['Cash', 'Bank', 'Mobile money', 'COOL AGRISTOCK agent(Name of the person)'];
+        $sendToOdooOptions = ['No', 'Yes', 'To review'];
+        $odooStatusOptions = ['Not exported', 'Exported'];
+        $sampleRows = $this->journalSampleRows();
+        $customers = \App\Models\User::whereIn('group_id', [5, 6, 7, 8, 10])
+            ->orderBy('name')->get(['id', 'name', 'phone']);
+
+        return view('accounting.journal-entry-create', compact(
+            'entry',
+            'journalOptions',
+            'eventTypes',
+            'provenanceOptions',
+            'sendToOdooOptions',
+            'odooStatusOptions',
+            'sampleRows',
+            'customers'
+        ));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $entry = JournalEntry::findOrFail($id);
+
+        if ($entry->status !== 'draft') {
+            return back()->with('error', 'Only draft entries can be edited.');
+        }
+
+        try {
+            [$entryData, $lineData] = $this->extractEntryPayload($request);
+            $this->journal->updateEntry($entry, $entryData, $lineData);
+
+            return redirect()->route('accounting.journal.show', $entry->id)
+                ->with('success', "Journal entry {$entry->reference} updated.");
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
     }
 
     private function deriveSendToOdooDecision(array $decisions): string

@@ -130,6 +130,8 @@ Route::middleware(['auth', 'locale'])->group(function () {
         Route::get('/invoices/create',         [\App\Http\Controllers\Accounting\InvoiceController::class, 'create'])->name('invoices.create');
         Route::post('/invoices',               [\App\Http\Controllers\Accounting\InvoiceController::class, 'storeManual'])->name('invoices.store');
         Route::get('/invoices/{id}',           [\App\Http\Controllers\Accounting\InvoiceController::class, 'show'])->name('invoices.show');
+        Route::get('/invoices/{id}/edit',       [\App\Http\Controllers\Accounting\InvoiceController::class, 'edit'])->name('invoices.edit');
+        Route::put('/invoices/{id}',           [\App\Http\Controllers\Accounting\InvoiceController::class, 'update'])->name('invoices.update');
         Route::get('/invoices/{id}/pdf',       [\App\Http\Controllers\Accounting\InvoiceController::class, 'pdf'])->name('invoices.pdf');
         Route::delete('/invoices/{id}',        [\App\Http\Controllers\Accounting\InvoiceController::class, 'destroy'])->name('invoices.destroy');
         Route::get('/invoices/{id}/line/{lineId}/pdf', [\App\Http\Controllers\Accounting\InvoiceController::class, 'linePdf'])->name('invoices.line-pdf');
@@ -143,6 +145,8 @@ Route::middleware(['auth', 'locale'])->group(function () {
         Route::post('/journal/process',      [\App\Http\Controllers\Accounting\JournalController::class, 'processEntry'])->name('journal.process');
         Route::post('/journal/process-line', [\App\Http\Controllers\Accounting\JournalController::class, 'processLine'])->name('journal.process-line');
         Route::get('/journal/{id}',          [\App\Http\Controllers\Accounting\JournalController::class, 'show'])->name('journal.show');
+        Route::get('/journal/{id}/edit',     [\App\Http\Controllers\Accounting\JournalController::class, 'edit'])->name('journal.edit');
+        Route::put('/journal/{id}',          [\App\Http\Controllers\Accounting\JournalController::class, 'update'])->name('journal.update');
         Route::post('/journal/{id}/submit',  [\App\Http\Controllers\Accounting\JournalController::class, 'submit'])->name('journal.submit');
         Route::delete('/journal/{id}',       [\App\Http\Controllers\Accounting\JournalController::class, 'destroy'])->name('journal.destroy');
 

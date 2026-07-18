@@ -116,10 +116,10 @@ class InvoiceController extends Controller
         ));
     }
 
-    public function storeManual(Request $request)
+    private function validateInvoiceRequest(Request $request, ?int $invoiceId = null): array
     {
-        $data = $request->validate([
-            'invoice_number'                  => ['nullable', 'string', 'max:255', 'unique:invoices,invoice_number'],
+        return $request->validate([
+            'invoice_number'                  => ['nullable', 'string', 'max:255', 'unique:invoices,invoice_number' . ($invoiceId ? ",{$invoiceId}" : '')],
             'invoice_date'                    => ['required', 'date'],
             'currency'                        => ['required', 'string', 'size:3'],
             'customer_id'                     => ['nullable', 'exists:users,id'],
@@ -147,54 +147,72 @@ class InvoiceController extends Controller
             'lines.*.odoo_decision_reason'    => ['nullable', 'string', 'max:1000'],
             'lines.*.comments'                => ['nullable', 'string', 'max:1000'],
         ]);
+    }
 
-        $lines = collect($data['lines'])
+    /**
+     * Compute per-line totals (amount before VAT, VAT amount, line total) plus
+     * the invoice-level subtotal/tax/total, from the raw validated line rows.
+     *
+     * @return array{0: \Illuminate\Support\Collection, 1: float, 2: float, 3: float}
+     */
+    private function computeLinePayload(array $rawLines): array
+    {
+        $lines = collect($rawLines)
             ->filter(fn ($line) => trim((string) ($line['service'] ?? '')) !== '')
             ->values();
 
-        if ($lines->isEmpty()) {
+        $subtotal = 0;
+        $taxAmount = 0;
+        $totalAmount = 0;
+
+        $linePayload = $lines->map(function (array $line, int $index) use (&$subtotal, &$taxAmount, &$totalAmount) {
+            $quantity = (float) $line['quantity'];
+            $unitPrice = (float) $line['unit_price'];
+            $discount = (float) ($line['discount_fixed_amount'] ?? 0);
+            $vatRate = (float) ($line['vat_rate'] ?? 0);
+            $amountBeforeVat = max(($quantity * $unitPrice) - $discount, 0);
+            $vatAmount = round($amountBeforeVat * $vatRate, 2);
+            $lineTotal = $amountBeforeVat + $vatAmount;
+
+            $subtotal += $amountBeforeVat;
+            $taxAmount += $vatAmount;
+            $totalAmount += $lineTotal;
+
+            return [
+                'line_no'                 => $index + 1,
+                'service'                 => $line['service'],
+                'category'                => $line['category'] ?? null,
+                'product'                 => $line['product'] ?? null,
+                'description'             => $line['description'] ?? null,
+                'unit'                    => $line['unit'] ?? null,
+                'quantity'                => $quantity,
+                'unit_price'              => $unitPrice,
+                'discount_fixed_amount'   => $discount,
+                'amount_before_vat'       => $amountBeforeVat,
+                'vat_rate'                => $vatRate,
+                'vat_amount'              => $vatAmount,
+                'total_amount'            => $lineTotal,
+                'journal_entry_no'        => $line['journal_entry_no'] ?? null,
+                'send_to_odoo'            => $line['send_to_odoo'],
+                'odoo_decision_reason'    => $line['odoo_decision_reason'] ?? null,
+                'comments'                => $line['comments'] ?? null,
+            ];
+        });
+
+        return [$linePayload, $subtotal, $taxAmount, $totalAmount];
+    }
+
+    public function storeManual(Request $request)
+    {
+        $data = $this->validateInvoiceRequest($request);
+
+        [$linePayload, $subtotal, $taxAmount, $totalAmount] = $this->computeLinePayload($data['lines']);
+
+        if ($linePayload->isEmpty()) {
             return back()->withInput()->with('error', 'Add at least one invoice line.');
         }
 
         try {
-            $subtotal = 0;
-            $taxAmount = 0;
-            $totalAmount = 0;
-
-            $linePayload = $lines->map(function (array $line, int $index) use (&$subtotal, &$taxAmount, &$totalAmount) {
-                $quantity = (float) $line['quantity'];
-                $unitPrice = (float) $line['unit_price'];
-                $discount = (float) ($line['discount_fixed_amount'] ?? 0);
-                $vatRate = (float) ($line['vat_rate'] ?? 0);
-                $amountBeforeVat = max(($quantity * $unitPrice) - $discount, 0);
-                $vatAmount = round($amountBeforeVat * $vatRate, 2);
-                $lineTotal = $amountBeforeVat + $vatAmount;
-
-                $subtotal += $amountBeforeVat;
-                $taxAmount += $vatAmount;
-                $totalAmount += $lineTotal;
-
-                return [
-                    'line_no'                 => $index + 1,
-                    'service'                 => $line['service'],
-                    'category'                => $line['category'] ?? null,
-                    'product'                 => $line['product'] ?? null,
-                    'description'             => $line['description'] ?? null,
-                    'unit'                    => $line['unit'] ?? null,
-                    'quantity'                => $quantity,
-                    'unit_price'              => $unitPrice,
-                    'discount_fixed_amount'   => $discount,
-                    'amount_before_vat'       => $amountBeforeVat,
-                    'vat_rate'                => $vatRate,
-                    'vat_amount'              => $vatAmount,
-                    'total_amount'            => $lineTotal,
-                    'journal_entry_no'        => $line['journal_entry_no'] ?? null,
-                    'send_to_odoo'            => $line['send_to_odoo'],
-                    'odoo_decision_reason'    => $line['odoo_decision_reason'] ?? null,
-                    'comments'                => $line['comments'] ?? null,
-                ];
-            });
-
             $invoice = Invoice::create([
                 'invoice_number'       => ($data['invoice_number'] ?? null) ?: Invoice::nextInvoiceNumber(),
                 'billing_id'           => null,
@@ -239,6 +257,92 @@ class InvoiceController extends Controller
 
             return redirect()->route('accounting.invoices.pdf', $invoice->id)
                 ->with('success', "Invoice {$invoice->invoice_number} generated.");
+        } catch (\Throwable $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+    }
+
+    public function edit(int $id)
+    {
+        $invoice = Invoice::with('lines')->findOrFail($id);
+
+        if ($invoice->status !== 'draft') {
+            return redirect()->route('accounting.invoices.show', $id)
+                ->with('error', 'Only draft invoices can be edited.');
+        }
+
+        $customers = User::whereIn('group_id', [5, 6, 7, 8, 10])
+            ->orderBy('name')
+            ->get(['id', 'name', 'email', 'phone', 'group_id']);
+        $eventTypeOptions = ['storage_fee', 'drying_fee', 'handling_fee', 'storage_fee / drying_fee', 'refund', 'Other'];
+        $categoryOptions = ['Cereals', 'Legumes', 'Root & Tubers', 'Vegetables', 'Fruits', 'Cash Crops'];
+        $productOptions = [
+            'Maize', 'Rice', 'Millet', 'Sorghum', 'Wheat', 'Groundnut', 'Cowpeas', 'Soybean',
+            'Black-eyed Peas', 'Cassava', 'Yam', 'Sweet Potato', 'Cocoyam', 'Tomato', 'Onion',
+            'Pepper', 'Cabbage', 'Carrot', 'Mango', 'Banana', 'Plantain', 'Pawpaw', 'Pineapple',
+            'Cocoa', 'Cashew', 'Shea Butter', 'Cotton', 'Atieke',
+        ];
+        $unitOptions = ['Bag/sack', 'Tonne', 'Kilogram', 'Crate', 'Carton'];
+        $sendToOdooOptions = ['No', 'Yes', 'To review'];
+        $headerSendToOdooOptions = ['Yes', 'No'];
+        $financeStatusOptions = ['Draft', 'To review', 'Finance approved', 'Blocked', 'Exported to Odoo'];
+        $sampleRows = $this->invoiceSampleRows();
+
+        return view('accounting.invoice-generator', compact(
+            'invoice',
+            'customers',
+            'eventTypeOptions',
+            'categoryOptions',
+            'productOptions',
+            'unitOptions',
+            'sendToOdooOptions',
+            'headerSendToOdooOptions',
+            'sampleRows',
+            'financeStatusOptions'
+        ));
+    }
+
+    public function update(Request $request, int $id)
+    {
+        $invoice = Invoice::findOrFail($id);
+
+        if ($invoice->status !== 'draft') {
+            return back()->with('error', 'Only draft invoices can be edited.');
+        }
+
+        $data = $this->validateInvoiceRequest($request, $invoice->id);
+
+        [$linePayload, $subtotal, $taxAmount, $totalAmount] = $this->computeLinePayload($data['lines']);
+
+        if ($linePayload->isEmpty()) {
+            return back()->withInput()->with('error', 'Add at least one invoice line.');
+        }
+
+        try {
+            $invoice->update([
+                'invoice_number'       => ($data['invoice_number'] ?? null) ?: $invoice->invoice_number,
+                'customer_id'          => $data['customer_id'] ?: null,
+                'customer_name'        => $data['customer_name'] ?? null,
+                'invoice_date'         => $data['invoice_date'],
+                'due_date'             => $data['due_date'] ?? null,
+                'stock_lot'            => $data['stock_lot'] ?? null,
+                'payment_terms'        => $data['payment_terms'] ?? null,
+                'odoo_partner_ref'     => $data['odoo_partner_ref'] ?? null,
+                'subtotal'             => $subtotal,
+                'tax_amount'           => $taxAmount,
+                'total_amount'         => $totalAmount,
+                'currency'             => $data['currency'],
+                'finance_status'       => $data['finance_status'],
+                'send_to_odoo'         => $data['send_to_odoo'],
+                'odoo_decision_reason' => $data['odoo_decision_reason'] ?? null,
+                'notes'                => $data['notes'] ?? null,
+            ]);
+
+            $invoice->lines()->delete();
+            $invoice->lines()->createMany($linePayload->all());
+
+            return redirect()->route('accounting.invoices.show', $invoice->id)
+                ->with('success', "Invoice {$invoice->invoice_number} updated.");
         } catch (\Throwable $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
@@ -367,22 +471,22 @@ class InvoiceController extends Controller
         $pdf->Cell(130, 8, 'COOL AGRISTOCK', 0, 0);
         $pdf->SetFont('Arial', 'B', 22);
         $pdf->SetTextColor(50, 50, 50);
-        $pdf->Cell(56, 8, 'INVOICE', 0, 1, 'R');
+        $pdf->Cell(56, 8, utf8_decode('FACTURE'), 0, 1, 'R');
 
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor(120, 120, 120);
-        $pdf->Cell(130, 5, 'Cold Storage Management', 0, 0);
+        $pdf->Cell(130, 5, utf8_decode('Gestion de Stockage Frigorifique'), 0, 0);
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor(50, 50, 50);
         $pdf->Cell(56, 5, utf8_decode($invoice->invoice_number), 0, 1, 'R');
 
         $pdf->SetFont('Arial', '', 8);
         $pdf->SetTextColor(120, 120, 120);
-        $pdf->Cell(130, 4, 'SIS A LA RIVIERA FAYA - COCODY, Abidjan', 0, 0);
-        $pdf->Cell(56, 4, 'Date: ' . $invoice->invoice_date->format('d/m/Y'), 0, 1, 'R');
+        $pdf->Cell(130, 4, utf8_decode('SIS A LA RIVIERA FAYA - COCODY, Abidjan'), 0, 0);
+        $pdf->Cell(56, 4, utf8_decode('Date : ') . $invoice->invoice_date->format('d/m/Y'), 0, 1, 'R');
         if ($invoice->due_date) {
             $pdf->Cell(130, 4, '', 0, 0);
-            $pdf->Cell(56, 4, 'Due: ' . $invoice->due_date->format('d/m/Y'), 0, 1, 'R');
+            $pdf->Cell(56, 4, utf8_decode('Échéance : ') . $invoice->due_date->format('d/m/Y'), 0, 1, 'R');
         }
 
         $pdf->Ln(4);
@@ -394,14 +498,14 @@ class InvoiceController extends Controller
         // ── Bill To ─────────────────────────────────────────────────────────
         $pdf->SetFont('Arial', 'B', 8);
         $pdf->SetTextColor(120, 120, 120);
-        $pdf->Cell(90, 4, 'BILL TO', 0, 1);
+        $pdf->Cell(90, 4, utf8_decode('FACTURÉ À'), 0, 1);
         $pdf->SetFont('Arial', 'B', 10);
         $pdf->SetTextColor(30, 30, 30);
         $pdf->Cell(90, 5, utf8_decode(strtoupper($customerName)), 0, 1);
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor(80, 80, 80);
-        if ($customerPhone) $pdf->Cell(90, 4, 'Tel: ' . $customerPhone, 0, 1);
-        if ($customerEmail) $pdf->Cell(90, 4, 'Email: ' . $customerEmail, 0, 1);
+        if ($customerPhone) $pdf->Cell(90, 4, utf8_decode('Tél : ') . $customerPhone, 0, 1);
+        if ($customerEmail) $pdf->Cell(90, 4, 'Email : ' . $customerEmail, 0, 1);
 
         $pdf->Ln(5);
 
@@ -412,7 +516,7 @@ class InvoiceController extends Controller
         $pdf->SetLineWidth(0.1);
 
         $w = [28, 20, 15, 38, 14, 18, 16, 20, 10];
-        $headers = ['Event Type', 'Product', 'Unit', 'Description', 'Qty', 'Unit Price', 'Discount', 'Before VAT', 'VAT%'];
+        $headers = array_map('utf8_decode', ["Type d'événement", 'Produit', 'Unité', 'Description', 'Qté', 'Prix Unit.', 'Remise', 'Avant TVA', 'TVA%']);
         foreach ($headers as $i => $h) {
             $pdf->Cell($w[$i], 7, $h, 1, 0, 'C', true);
         }
@@ -449,32 +553,32 @@ class InvoiceController extends Controller
         $pdf->SetFont('Arial', '', 9);
         $pdf->SetTextColor(60, 60, 60);
         $pdf->Cell($tw - 50, 6, '', 0, 0);
-        $pdf->Cell(25, 6, 'Subtotal:', 0, 0, 'R');
+        $pdf->Cell(25, 6, utf8_decode('Sous-total :'), 0, 0, 'R');
         $pdf->Cell(25, 6, number_format($subtotal, 0, '.', ' ') . ' XOF', 0, 1, 'R');
 
         $pdf->Cell($tw - 50, 6, '', 0, 0);
-        $pdf->Cell(25, 6, 'VAT:', 0, 0, 'R');
+        $pdf->Cell(25, 6, 'TVA :', 0, 0, 'R');
         $pdf->Cell(25, 6, number_format($taxTotal, 0, '.', ' ') . ' XOF', 0, 1, 'R');
 
         $pdf->SetFont('Arial', 'B', 11);
         $pdf->SetFillColor(78, 122, 70);
         $pdf->SetTextColor(255);
         $pdf->Cell($tw - 50, 7, '', 0, 0);
-        $pdf->Cell(25, 7, 'TOTAL', 1, 0, 'R', true);
+        $pdf->Cell(25, 7, utf8_decode('TOTAL'), 1, 0, 'R', true);
         $pdf->Cell(25, 7, number_format($grandTotal, 0, '.', ' ') . ' XOF', 1, 1, 'R', true);
 
         $pdf->Ln(8);
         $pdf->SetFont('Arial', '', 8);
         $pdf->SetTextColor(80, 80, 80);
-        $pdf->Cell(93, 5, 'Signature (Customer): _______________________', 0, 0);
-        $pdf->Cell(93, 5, 'Signature (Cool AgriStock): _______________________', 0, 1, 'R');
+        $pdf->Cell(93, 5, utf8_decode('Signature (Client) : _______________________'), 0, 0);
+        $pdf->Cell(93, 5, utf8_decode('Signature (Cool AgriStock) : _______________________'), 0, 1, 'R');
 
         // ── Footer ───────────────────────────────────────────────────────────
         $pdf->SetY(-18);
         $pdf->SetFont('Arial', 'I', 7);
         $pdf->SetTextColor(150, 150, 150);
-        $pdf->Cell(186, 4, 'SIS A LA RIVIERA FAYA - ROND POINT CITE SIR - COCODY, Abidjan - Cote d\'Ivoire', 0, 1, 'C');
-        $pdf->Cell(186, 4, 'Tel: (+225) 0102030405 | www.cool-agristock.com', 0, 1, 'C');
+        $pdf->Cell(186, 4, utf8_decode('SIS A LA RIVIERA FAYA - ROND POINT CITE SIR - COCODY, Abidjan - Côte d\'Ivoire'), 0, 1, 'C');
+        $pdf->Cell(186, 4, utf8_decode('Tél : (+225) 0102030405 | www.cool-agristock.com'), 0, 1, 'C');
 
         $pdf->Output('I', 'invoice-' . $invoice->invoice_number . '.pdf');
         exit;

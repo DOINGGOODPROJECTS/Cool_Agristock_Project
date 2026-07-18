@@ -104,6 +104,15 @@
                 <i class="fa fa-external-link-alt"></i>
             </a>
 
+            @if($entry->status === 'draft')
+            <a href="{{ route('accounting.journal.edit', $entry->id) }}"
+               class="btn btn-xs btn-label-warning ms-1"
+               title="{{ __('locale.acct_edit_entry') }}"
+               onclick="event.stopPropagation()">
+                <i class="fa fa-edit"></i>
+            </a>
+            @endif
+
             @if(in_array($entry->status, ['draft', 'rejected']))
             <form action="{{ route('accounting.journal.destroy', $entry->id) }}"
                   method="POST" style="display:inline-block"

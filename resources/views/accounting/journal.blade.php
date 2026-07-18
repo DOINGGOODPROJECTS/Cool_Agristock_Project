@@ -117,6 +117,9 @@
                                     </a>
 
                                     @if($entry->status === 'draft' && ($entry->created_by === auth()->id() || isGroupAuthorized([1])))
+                                    <a href="{{ route('accounting.journal.edit', $entry->id) }}" class="btn btn-xs btn-label-warning" title="{{ __('locale.acct_edit_entry') }}">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
                                     <form action="{{ route('accounting.journal.submit', $entry->id) }}" method="POST" style="display:inline-block">
                                         @csrf
                                         <button class="btn btn-xs btn-label-warning" title="{{ __('locale.acct_submit_for_approval') }}"

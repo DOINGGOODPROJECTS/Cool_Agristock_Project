@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">{{ __('locale.acct_new_journal_entry') }}</h4>
+                <h4 class="mb-sm-0">{{ isset($entry) ? __('locale.acct_edit_journal_entry') : __('locale.acct_new_journal_entry') }}</h4>
                 <a href="{{ route('accounting.journal.index') }}" class="btn btn-secondary btn-sm">
                     <i class="fa fa-arrow-left me-1"></i> {{ __('locale.acct_back') }}
                 </a>
@@ -14,8 +14,9 @@
     <div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
-    <form action="{{ route('accounting.journal.process') }}" method="POST" id="journalForm">
+    <form action="{{ isset($entry) ? route('accounting.journal.update', $entry->id) : route('accounting.journal.process') }}" method="POST" id="journalForm">
         @csrf
+        @if(isset($entry)) @method('PUT') @endif
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
@@ -77,13 +78,32 @@
                     {{ __('locale.acct_process_hint') }}
                 </p>
                 <button type="submit" class="btn btn-success px-4" id="submitBtn">
-                    <i class="fa fa-paper-plane me-1"></i> {{ __('locale.acct_process') }}
+                    <i class="fa fa-paper-plane me-1"></i> {{ isset($entry) ? __('locale.acct_save_changes') : __('locale.acct_process') }}
                 </button>
             </div>
         </div>
     </form>
 
     @push('scripts')
+    @php
+        $existingJournalLines = isset($entry)
+            ? $entry->lines->map(fn($l) => [
+                'line_date' => optional($l->line_date)->toDateString(),
+                'journal' => $l->journal,
+                'document_reference' => $l->document_reference,
+                'customer_id' => $l->customer_id,
+                'customer_name' => $l->customer_name,
+                'event_type' => $l->event_type,
+                'provenance_category' => $l->provenance_category,
+                'description' => $l->description,
+                'debit' => $l->debit,
+                'credit' => $l->credit,
+                'currency' => $l->currency,
+                'send_to_odoo' => $l->send_to_odoo,
+                'comments' => $l->comments,
+            ])->values()
+            : collect();
+    @endphp
     <script>
     (function () {
         let lineIndex = 0;
@@ -100,6 +120,8 @@
         const labelBalanceHint = @json(__('locale.acct_balance_check_hint'));
         const labelBalanced    = @json(__('locale.acct_balanced'));
         const labelUnbalanced  = @json(__('locale.acct_unbalanced'));
+        const isEditing = @json(isset($entry));
+        const existingLines = @json($existingJournalLines);
 
         function optionsHtml(options, selected = '') {
             return ['<option value=""></option>'].concat(options.map(option => {
@@ -185,7 +207,7 @@
                 <td><input type="text" name="lines[${idx}][odoo_status]" class="form-control form-control-sm odoo-status-auto bg-light text-muted" readonly value="${escapeHtml(labelNotExported)}"></td>
                 <td><input type="text" name="lines[${idx}][comments]" class="form-control form-control-sm" value="${escapeHtml(row.comments || '')}"></td>
                 <td class="text-center" style="min-width:90px">
-                    <button type="button" class="btn btn-xs btn-success process-line-btn me-1" title="Process this row"><i class="fa fa-paper-plane"></i></button>
+                    ${isEditing ? '' : '<button type="button" class="btn btn-xs btn-success process-line-btn me-1" title="Process this row"><i class="fa fa-paper-plane"></i></button>'}
                     <button type="button" class="btn btn-xs btn-danger remove-line"><i class="fa fa-trash"></i></button>
                 </td>
             </tr>`;
@@ -463,41 +485,47 @@
             } catch(e) {}
         }
 
-        // Auto-save on any input change (debounced)
+        // Auto-save on any input change (debounced) — skipped while editing an existing entry
         let saveTimer = null;
-        document.getElementById('linesTable').addEventListener('input', () => {
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(saveToLocalStorage, 600);
-        });
-        document.getElementById('linesTable').addEventListener('change', () => {
-            clearTimeout(saveTimer);
-            saveTimer = setTimeout(saveToLocalStorage, 300);
-        });
+        if (!isEditing) {
+            document.getElementById('linesTable').addEventListener('input', () => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveToLocalStorage, 600);
+            });
+            document.getElementById('linesTable').addEventListener('change', () => {
+                clearTimeout(saveTimer);
+                saveTimer = setTimeout(saveToLocalStorage, 300);
+            });
+        }
 
         // Clear draft after successful process (server sets flash)
         @if(session('clear_journal_draft'))
         localStorage.removeItem(LS_KEY);
         @endif
 
-        // Restore draft on page load (instead of starting blank)
-        const hasDraft = localStorage.getItem(LS_KEY);
-        if (hasDraft) {
-            restoreFromLocalStorage();
+        // Restore draft on page load (instead of starting blank) — skipped when editing an existing entry
+        if (isEditing) {
+            existingLines.forEach(row => addRow(row));
         } else {
-            addRow();
+            const hasDraft = localStorage.getItem(LS_KEY);
+            if (hasDraft) {
+                restoreFromLocalStorage();
+            } else {
+                addRow();
+            }
         }
         // ─────────────────────────────────────────────────────────────────────
 
         document.getElementById('addLine').addEventListener('click', function (e) {
             e.stopPropagation();
             addRow();
-            saveToLocalStorage();
+            if (!isEditing) saveToLocalStorage();
         });
         document.getElementById('loadSamples').addEventListener('click', () => {
             document.getElementById('linesBody').innerHTML = '';
             lineIndex = 0;
             samples.forEach(row => addRow(row));
-            saveToLocalStorage();
+            if (!isEditing) saveToLocalStorage();
         });
     })();
     </script>

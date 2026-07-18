@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
-                <h4 class="mb-sm-0">{{ __('locale.acct_invoice_generator') }}</h4>
+                <h4 class="mb-sm-0">{{ isset($invoice) ? __('locale.acct_edit_invoice') : __('locale.acct_invoice_generator') }}</h4>
                 <a href="{{ route('accounting.invoices.index') }}" class="btn btn-secondary btn-sm">
                     <i class="fa fa-arrow-left me-1"></i> {{ __('locale.acct_back') }}
                 </a>
@@ -14,10 +14,11 @@
     <div class="alert alert-danger alert-dismissible fade show">{{ session('error') }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button></div>
     @endif
 
-    <form action="{{ route('accounting.invoices.store') }}" method="POST" id="invoiceForm" novalidate>
-        <input type="hidden" name="finance_status" value="To review">
-        <input type="hidden" name="send_to_odoo" value="No">
-        <input type="hidden" name="odoo_decision_reason" value="">
+    <form action="{{ isset($invoice) ? route('accounting.invoices.update', $invoice->id) : route('accounting.invoices.store') }}" method="POST" id="invoiceForm" novalidate>
+        @if(isset($invoice)) @method('PUT') @endif
+        <input type="hidden" name="finance_status" value="{{ $invoice->finance_status ?? 'To review' }}">
+        <input type="hidden" name="send_to_odoo" value="{{ $invoice->send_to_odoo ?? 'No' }}">
+        <input type="hidden" name="odoo_decision_reason" value="{{ $invoice->odoo_decision_reason ?? '' }}">
         @csrf
 
         <div class="card">
@@ -29,11 +30,11 @@
                 <div class="row g-3">
                     <div class="col-md-3">
                         <label class="form-label">{{ __('locale.acct_invoice_date') }} <span class="text-danger">*</span></label>
-                        <input type="date" name="invoice_date" class="form-control" value="{{ old('invoice_date', now()->toDateString()) }}" required>
+                        <input type="date" name="invoice_date" class="form-control" value="{{ old('invoice_date', isset($invoice) ? $invoice->invoice_date->toDateString() : now()->toDateString()) }}" required>
                     </div>
                     <div class="col-md-2">
                         <label class="form-label">{{ __('locale.acct_currency') }} <span class="text-danger">*</span></label>
-                        <input type="text" name="currency" class="form-control text-uppercase" maxlength="3" value="{{ old('currency', 'XOF') }}" required>
+                        <input type="text" name="currency" class="form-control text-uppercase" maxlength="3" value="{{ old('currency', $invoice->currency ?? 'XOF') }}" required>
                     </div>
                     <div class="col-md-4">
                         <label class="form-label">{{ __('locale.acct_customer') }} <span class="text-danger">*</span></label>
@@ -53,31 +54,31 @@
                             ">
                             <option value="">{{ __('locale.acct_select_customer') }}</option>
                             @foreach($customers as $customer)
-                            <option value="{{ $customer->id }}" {{ (string) old('customer_id') === (string) $customer->id ? 'selected' : '' }}>
+                            <option value="{{ $customer->id }}" {{ (string) old('customer_id', $invoice->customer_id ?? '') === (string) $customer->id ? 'selected' : '' }}>
                                 {{ $customer->name }}@if($customer->email) ({{ $customer->email }})@endif
                             </option>
                             @endforeach
-                            <option value="other" {{ old('customer_name') ? 'selected' : '' }}>{{ __('locale.acct_other_type_name') }}</option>
+                            <option value="other" {{ old('customer_name', $invoice->customer_name ?? '') ? 'selected' : '' }}>{{ __('locale.acct_other_type_name') }}</option>
                         </select>
-                        <input type="hidden" name="customer_id" id="customerIdHidden" value="{{ old('customer_id') }}">
+                        <input type="hidden" name="customer_id" id="customerIdHidden" value="{{ old('customer_id', $invoice->customer_id ?? '') }}">
                         <input type="text" name="customer_name" id="customerNameInput"
                             class="form-control mt-1" placeholder="{{ __('locale.acct_customer') }}..."
-                            value="{{ old('customer_name') }}"
-                            style="{{ old('customer_name') ? '' : 'display:none' }}">
+                            value="{{ old('customer_name', $invoice->customer_name ?? '') }}"
+                            style="{{ old('customer_name', $invoice->customer_name ?? '') ? '' : 'display:none' }}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">{{ __('locale.acct_due_date') }}</label>
-                        <input type="date" name="due_date" class="form-control" value="{{ old('due_date') }}">
+                        <input type="date" name="due_date" class="form-control" value="{{ old('due_date', optional($invoice->due_date ?? null)->toDateString()) }}">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">{{ __('locale.acct_stock_lot') }}</label>
-                        <input type="text" name="stock_lot" class="form-control" value="{{ old('stock_lot') }}" placeholder="e.g. LOT-2026-001">
+                        <input type="text" name="stock_lot" class="form-control" value="{{ old('stock_lot', $invoice->stock_lot ?? '') }}" placeholder="e.g. LOT-2026-001">
                     </div>
                     <div class="col-md-3">
                         <label class="form-label">{{ __('locale.acct_payment_terms') }}</label>
-                        <input type="text" name="payment_terms" class="form-control" value="{{ old('payment_terms', 'Due on receipt') }}" placeholder="e.g. Due on receipt, Net 30">
+                        <input type="text" name="payment_terms" class="form-control" value="{{ old('payment_terms', $invoice->payment_terms ?? 'Due on receipt') }}" placeholder="e.g. Due on receipt, Net 30">
                     </div>
-                    <input type="hidden" name="odoo_partner_ref" value="">
+                    <input type="hidden" name="odoo_partner_ref" value="{{ $invoice->odoo_partner_ref ?? '' }}">
                 </div>
             </div>
         </div>
@@ -138,6 +139,11 @@
 
         <div class="card">
             <div class="card-body d-flex justify-content-end gap-2">
+                @if(isset($invoice))
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fa fa-save me-1"></i> {{ __('locale.acct_save_changes') }}
+                </button>
+                @else
                 <button type="submit" class="btn btn-primary px-4"
                     onclick="document.getElementById('formAction').value='generate'">
                     <i class="fa fa-save me-1"></i> {{ __('locale.acct_generate_invoice') }}
@@ -146,11 +152,30 @@
                     onclick="document.getElementById('formAction').value='send_odoo'">
                     <i class="fa fa-paper-plane me-1"></i> {{ __('locale.acct_send_to_odoo') }}
                 </button>
+                @endif
             </div>
         </div>
     </form>
 
     @push('scripts')
+    @php
+        $existingInvoiceLines = isset($invoice)
+            ? $invoice->lines->map(fn($l) => [
+                'service' => $l->service,
+                'category' => $l->category,
+                'product' => $l->product,
+                'description' => $l->description,
+                'unit' => $l->unit,
+                'quantity' => $l->quantity,
+                'unit_price' => $l->unit_price,
+                'discount_fixed_amount' => $l->discount_fixed_amount,
+                'vat_rate' => $l->vat_rate,
+                'journal_entry_no' => $l->journal_entry_no,
+                'send_to_odoo' => $l->send_to_odoo,
+                'comments' => $l->comments,
+            ])->values()
+            : collect();
+    @endphp
     <script>
     (function () {
         let lineIndex = 0;
@@ -160,6 +185,7 @@
         const unitOptions = @json($unitOptions);
         const sendOptions = @json($sendToOdooOptions);
         const samples = @json($sampleRows);
+        const existingLines = @json($existingInvoiceLines);
 
         function escapeHtml(value) {
             return String(value ?? '').replace(/[&<>"']/g, char => ({
@@ -201,7 +227,7 @@
                 <td><select name="lines[${idx}][send_to_odoo]" class="form-select form-select-sm" required>${optionsHtml(sendOptions, row.send_to_odoo || 'No')}</select></td>
                 <td><input type="text" name="lines[${idx}][comments]" class="form-control form-control-sm" value="${escapeHtml(row.comments || '')}"></td>
                 <td style="min-width:70px;white-space:nowrap" class="text-center">
-                    <button type="button" class="btn btn-xs btn-success generate-line-btn" title="{{ __('locale.acct_generate_invoice') }}" style="margin-right:4px"><i class="fa fa-file-invoice"></i></button><button type="button" class="btn btn-xs btn-danger remove-line"><i class="fa fa-trash"></i></button>
+                    @if(!isset($invoice))<button type="button" class="btn btn-xs btn-success generate-line-btn" title="{{ __('locale.acct_generate_invoice') }}" style="margin-right:4px"><i class="fa fa-file-invoice"></i></button>@endif<button type="button" class="btn btn-xs btn-danger remove-line"><i class="fa fa-trash"></i></button>
                 </td>
             </tr>`;
         }
@@ -376,7 +402,11 @@
             lineIndex = 0;
             samples.forEach(row => addRow(row));
         });
-        addRow();
+        if (existingLines.length) {
+            existingLines.forEach(row => addRow(row));
+        } else {
+            addRow();
+        }
     })();
     </script>
     @endpush

@@ -40,7 +40,7 @@
                                 <td>{{ $loop->iteration }}</td>
                                 <td>{{ date('d/m/Y H:i:s', strtotime($item->created_at)) }}</td>
                                 <td>{{ $item->type_storage }}</td>
-                                <td>{{ $item->storage->name." - ".$item->storage->location }}</td>
+                                <td>{{ $item->storage ? $item->storage->name." - ".$item->storage->location : 'N/A' }}</td>
                                 <td>{{ $item->session }}</td>
                                 <td>{{ date('H:i', strtotime($item->session_time)) }}</td>
                                 <td>{{ $item->degree }} °C</td>

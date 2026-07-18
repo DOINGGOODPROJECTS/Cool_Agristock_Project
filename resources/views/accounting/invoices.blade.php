@@ -94,6 +94,12 @@
             </a>
 
             @if($inv->status === 'draft')
+            <a href="{{ route('accounting.invoices.edit', $inv->id) }}"
+               class="btn btn-xs btn-label-warning ms-1"
+               title="{{ __('locale.acct_edit_invoice') }}"
+               onclick="event.stopPropagation()">
+                <i class="fa fa-edit"></i>
+            </a>
             <form action="{{ route('accounting.invoices.destroy', $inv->id) }}"
                   method="POST" style="display:inline-block"
                   onclick="event.stopPropagation()">

@@ -3,9 +3,16 @@
         <div class="col-12">
             <div class="page-title-box d-flex align-items-center justify-content-between">
                 <h4 class="mb-sm-0">{{ __('locale.acct_journal_entry') }} — {{ $entry->reference }}</h4>
-                <a href="{{ route('accounting.journal.index') }}" class="btn btn-secondary btn-sm">
-                    <i class="fa fa-arrow-left me-1"></i> {{ __('locale.acct_back') }}
-                </a>
+                <div class="d-flex gap-2">
+                    @if($entry->status === 'draft')
+                    <a href="{{ route('accounting.journal.edit', $entry->id) }}" class="btn btn-warning btn-sm">
+                        <i class="fa fa-edit me-1"></i> {{ __('locale.acct_edit_entry') }}
+                    </a>
+                    @endif
+                    <a href="{{ route('accounting.journal.index') }}" class="btn btn-secondary btn-sm">
+                        <i class="fa fa-arrow-left me-1"></i> {{ __('locale.acct_back') }}
+                    </a>
+                </div>
             </div>
         </div>
     </div>

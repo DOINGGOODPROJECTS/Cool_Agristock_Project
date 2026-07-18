@@ -27,6 +27,22 @@ class JournalService
         });
     }
 
+    public function updateEntry(JournalEntry $entry, array $data, array $lines): JournalEntry
+    {
+        return DB::transaction(function () use ($entry, $data, $lines) {
+            $entry->update($data);
+
+            $entry->lines()->delete();
+            foreach ($lines as $line) {
+                $entry->lines()->create($line);
+            }
+
+            $entry->recalculateTotals();
+
+            return $entry->fresh();
+        });
+    }
+
     public function submit(JournalEntry $entry): void
     {
         if ($entry->status !== 'draft') {

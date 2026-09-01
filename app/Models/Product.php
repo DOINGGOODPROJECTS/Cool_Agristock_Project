@@ -58,4 +58,14 @@ class Product extends Model
 	{
 		return $this->hasMany(InventoryOp::class);
 	}
+
+	public function environmentalProfile()
+	{
+		return $this->hasOne(EnvironmentalProfile::class);
+	}
+
+	public function dryingBatches()
+	{
+		return $this->hasMany(DryingBatch::class);
+	}
 }

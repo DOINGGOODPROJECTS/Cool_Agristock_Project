@@ -33,7 +33,8 @@ class StorageController extends Controller
     public function store(Request $request)
     {
         $data = $request->except('_token');
-        
+        $data['thingsboard_device_id'] = trim($data['thingsboard_device_id'] ?? '') ?: null;
+
         Storage::create($data);
         return redirect()->back()->with('success', 'Storage created successfully');
     }
@@ -62,6 +63,7 @@ class StorageController extends Controller
         $storage = Storage::find($id);
 
         $data = $request->except('_token', '_method');
+        $data['thingsboard_device_id'] = trim($data['thingsboard_device_id'] ?? '') ?: null;
         $storage->update($data);
         return redirect()->back()->with('success', 'Storage updated successfully');
     }

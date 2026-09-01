@@ -91,6 +91,16 @@ class User extends Authenticatable
         return $this->hasOne(MemberPhone::class);
     }
 
+    public function dryingBatches()
+    {
+        return $this->hasMany(DryingBatch::class, 'customer_id');
+    }
+
+    public function operatedDryingBatches()
+    {
+        return $this->hasMany(DryingBatch::class, 'operator_id');
+    }
+
     /**
      * Send a password reset notification to the user.
      *

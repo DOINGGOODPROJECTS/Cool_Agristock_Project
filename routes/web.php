@@ -25,6 +25,9 @@ use App\Http\Controllers\InventoryOpController;
 use App\Http\Controllers\SyncAuditLogController;
 use App\Http\Controllers\SyncSessionController;
 use App\Http\Controllers\MemberPhoneController;
+use App\Http\Controllers\SensorController;
+use App\Http\Controllers\EnvironmentalProfileController;
+use App\Http\Controllers\DryingBatchController;
 
 /*
 |--------------------------------------------------------------------------
@@ -159,6 +162,19 @@ Route::middleware(['auth', 'locale'])->group(function () {
     });
     // ─────────────────────────────────────────────────────────────────────────
 
+    // ── Smart Sensor Management (ThingsBoard-backed monitoring) ────────
+    // Overview/detail/history/alarms are readable by any authenticated user;
+    // SensorController scopes what a non-admin/supervisor actually sees to
+    // environments tied to their own drying batches.
+    Route::prefix('sensors')->name('sensors.')->group(function () {
+        Route::get('/', [SensorController::class, 'index'])->name('index');
+        Route::get('/{id}', [SensorController::class, 'show'])->name('show');
+        Route::get('/{id}/status', [SensorController::class, 'status'])->name('status');
+        Route::get('/{id}/history', [SensorController::class, 'history'])->name('history');
+        Route::get('/{id}/alarms', [SensorController::class, 'alarms'])->name('alarms');
+    });
+    // ─────────────────────────────────────────────────────────────────
+
     Route::middleware('supervisor')->group(function () {
         Route::get('/incidents/{status}/{id}', [IncidentController::class, 'setStatus'])->name('incidents.status');
 
@@ -168,6 +184,15 @@ Route::middleware(['auth', 'locale'])->group(function () {
         Route::resource('storages', StorageController::class);
         Route::resource('products', ProductController::class);
         Route::resource('incidents', IncidentController::class);
+
+        // ── Smart Sensor management (Admin/Supervisor only) ────────────
+        Route::resource('sensor-profiles', EnvironmentalProfileController::class)
+            ->except(['show', 'create', 'edit'])->names('sensor-profiles');
+        Route::post('sensor-profiles/{id}/assign-facility', [EnvironmentalProfileController::class, 'assignFacility'])
+            ->name('sensor-profiles.assign-facility');
+        Route::resource('sensor-batches', DryingBatchController::class)
+            ->except(['show', 'create', 'edit'])->names('sensor-batches');
+        // ─────────────────────────────────────────────────────────────
 
         Route::middleware('admin')->group(function () {
             Route::get('/groups', [Controller::class, 'groups'])->name('groups');

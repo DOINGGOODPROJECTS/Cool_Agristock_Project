@@ -23,7 +23,21 @@
                                     <input type="text" class="form-control"" value="{{ $storage->location }}" name="location" placeholder="Ex: 100t" required/> <label for="floatingInput">@lang('locale.location')</label>
                                 </div>
                             </div>
-                        </div>                
+                        </div>
+                        <hr>
+                        <div class="row">
+                            <div class="col-md-8 col-sm-8 col-xs-12">
+                                <div class="form-floating">
+                                    <input type="text" class="form-control" value="{{ $storage->thingsboard_device_id }}" name="thingsboard_device_id" placeholder="Ex: 6a1e...-ThingsBoard-Device-Id"/> <label for="floatingInput">@lang('locale.thingsboard_device_id')</label>
+                                </div>
+                            </div>
+                            <div class="col-md-4 col-sm-4 col-xs-12">
+                                <div class="form-floating">
+                                    <input type="number" min="1" class="form-control" value="{{ $storage->stale_threshold_minutes ?? 15 }}" name="stale_threshold_minutes" placeholder="15"/> <label for="floatingInput">@lang('locale.stale_threshold_minutes')</label>
+                                </div>
+                            </div>
+                        </div>
+                        <small class="text-muted">@lang('locale.thingsboard_device_id_help')</small>
                     </div>
                 </div>
                 <div class="modal-footer"><button class="btn btn-primary">@lang('locale.submit') <i class="fas fa-check"></i></button> <button class="btn btn-outline-danger" data-bs-dismiss="modal">@lang('locale.close') <i class="mdi mdi-close"></i></button></div>

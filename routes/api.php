@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\ProductCatalogController;
 use App\Http\Controllers\Api\SyncController;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -45,6 +46,12 @@ Route::post('/auth/token', function (Request $request) {
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+// ── Product catalog — consumed by the Cool Agristock smart-monitoring
+// dashboard (dashboard.agricarecentres.com) to pull recommended
+// temperature/RH ranges for each product. Read-only.
+Route::middleware('auth:sanctum')->get('/catalog/products', [ProductCatalogController::class, 'index'])
+    ->name('api.catalog.products');
 
 // ── Sync API ──────────────────────────────────────────────────────────────
 // All routes require a valid Sanctum token (auth:sanctum).

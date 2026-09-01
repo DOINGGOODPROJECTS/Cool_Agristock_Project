@@ -36,7 +36,8 @@ class Storage extends Model
 	protected $casts = [
 		'dimension' => 'float',
 		'capacity' => 'float',
-		'city_id' => 'int'
+		'city_id' => 'int',
+		'stale_threshold_minutes' => 'int'
 	];
 
 	protected $guarded = [];
@@ -74,5 +75,36 @@ class Storage extends Model
 	public function inventoryOps()
 	{
 		return $this->hasMany(InventoryOp::class);
+	}
+
+	public function dryingBatches()
+	{
+		return $this->hasMany(DryingBatch::class);
+	}
+
+	public function activeBatch()
+	{
+		return $this->hasOne(DryingBatch::class)->where('status', 'in_progress')->latestOfMany('start_time');
+	}
+
+	public function isSensorEnabled(): bool
+	{
+		return !empty($this->thingsboard_device_id);
+	}
+
+	/**
+	 * Scope environments to what a user is allowed to see in Smart Sensors.
+	 * Admin/Supervisor (group 1/2) see every sensor-enabled environment.
+	 * Everyone else only sees environments tied to a drying batch they own.
+	 */
+	public function scopeVisibleTo($query, User $user)
+	{
+		$query->whereNotNull('thingsboard_device_id');
+
+		if (!in_array($user->group_id, [1, 2])) {
+			$query->whereHas('dryingBatches', fn ($q) => $q->where('customer_id', $user->id));
+		}
+
+		return $query;
 	}
 }

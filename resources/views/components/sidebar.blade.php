@@ -51,6 +51,19 @@
                 </li>
                 @endif  
                 
+                <li>
+                    <a href="javascript: void(0);" class="has-arrow">
+                        <i class="fas fa-microchip"></i> <span>@lang('locale.nav_smart_sensors')</span>
+                    </a>
+                    <ul class="sub-menu" aria-expanded="false">
+                        <li><a href="{{ route('sensors.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sensors_overview')</a></li>
+                        @if (isGroupAuthorized([1, 2]))
+                        <li><a href="{{ route('sensor-profiles.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sensor_profiles')</a></li>
+                        <li><a href="{{ route('sensor-batches.index') }}"><i class="mdi mdi-checkbox-blank-circle align-middle"></i> @lang('locale.nav_sensor_batches')</a></li>
+                        @endif
+                    </ul>
+                </li>
+
                 @if (isGroupAuthorized([1, 3, 4, 5, 6, 7, 8]))
                 <li>
                     <a href="javascript: void(0);" class="has-arrow">
